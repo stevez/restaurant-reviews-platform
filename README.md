@@ -2,6 +2,7 @@
 
 > A production-ready, full-stack restaurant review application built with Next.js 14, TypeScript, Prisma, and PostgreSQL.
 
+[![CI](https://github.com/stevez/restaurant-reviews-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/stevez/restaurant-reviews-platform/actions/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-313%20passing-success)](package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
