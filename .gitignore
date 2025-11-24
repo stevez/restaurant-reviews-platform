@@ -1,0 +1,11 @@
+node_modules/
+.next/
+coverage/
+.swc/
+
+# Uploaded images (keep directory with .gitkeep)
+public/uploads/*
+!public/uploads/.gitkeep
+.claude/
+.env
+tsconfig.tsbuildinfo
