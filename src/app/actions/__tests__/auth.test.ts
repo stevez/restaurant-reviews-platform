@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll, Mock } from 'vitest'
 import { loginAction, registerAction, logoutAction, getCurrentUser } from '../auth'
 import { prisma } from '@/lib/db'
 import bcryptjs from 'bcryptjs'
@@ -6,32 +7,36 @@ import { redirect } from 'next/navigation'
 import { setTokenCookie } from '@/lib/auth'
 
 // Mock dependencies
-jest.mock('@/lib/db', () => ({
+vi.mock('@/lib/db', () => ({
   prisma: {
     user: {
-      findUnique: jest.fn(),
-      create: jest.fn()
+      findUnique: vi.fn(),
+      create: vi.fn()
     }
   }
 }))
 
-jest.mock('bcryptjs', () => ({
-  compare: jest.fn(),
-  hash: jest.fn()
+vi.mock('bcryptjs', () => ({
+  default: {
+    compare: vi.fn(),
+    hash: vi.fn()
+  },
+  compare: vi.fn(),
+  hash: vi.fn()
 }))
 
-jest.mock('next/headers', () => ({
-  cookies: jest.fn()
+vi.mock('next/headers', () => ({
+  cookies: vi.fn()
 }))
 
-jest.mock('next/navigation', () => ({
-  redirect: jest.fn()
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn()
 }))
 
-jest.mock('@/lib/auth', () => ({
-  generateToken: jest.fn(() => 'mock-token'),
-  setTokenCookie: jest.fn(),
-  verifyToken: jest.fn((token) => {
+vi.mock('@/lib/auth', () => ({
+  generateToken: vi.fn(() => 'mock-token'),
+  setTokenCookie: vi.fn(),
+  verifyToken: vi.fn((token) => {
     if (token === 'valid-token') {
       return { userId: '1', email: 'test@example.com', role: 'REVIEWER' };
     }
@@ -66,14 +71,14 @@ afterAll(() => {
 
 describe('Auth Actions', () => {
   const mockCookies = {
-    set: jest.fn(),
-    get: jest.fn(),
-    delete: jest.fn()
+    set: vi.fn(),
+    get: vi.fn(),
+    delete: vi.fn()
   }
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (cookies as jest.Mock).mockReturnValue(mockCookies)
+    vi.clearAllMocks();
+    (cookies as Mock).mockReturnValue(mockCookies)
   })
 
   describe('loginAction', () => {
@@ -86,8 +91,8 @@ describe('Auth Actions', () => {
         role: 'REVIEWER'
       };
 
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
-      (bcryptjs.compare as jest.Mock).mockResolvedValue(true)
+      (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
+      (bcryptjs.compare as Mock).mockResolvedValue(true)
 
       const result = await loginAction('test@example.com', 'Password123')
 
@@ -99,7 +104,7 @@ describe('Auth Actions', () => {
     })
 
     it('should return error for non-existent user', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
+      (prisma.user.findUnique as Mock).mockResolvedValue(null)
 
       const result = await loginAction('test@example.com', 'wrong')
 
@@ -118,8 +123,8 @@ describe('Auth Actions', () => {
         role: 'REVIEWER'
       };
 
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
-      (bcryptjs.compare as jest.Mock).mockResolvedValue(false)
+      (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
+      (bcryptjs.compare as Mock).mockResolvedValue(false)
 
       const result = await loginAction('test@example.com', 'wrong')
 
@@ -140,7 +145,7 @@ describe('Auth Actions', () => {
     })
 
     it('should return "Internal server error" for other errors', async () => {
-      (prisma.user.findUnique as jest.Mock).mockRejectedValue(new Error('DB error'));
+      (prisma.user.findUnique as Mock).mockRejectedValue(new Error('DB error'));
       const result = await loginAction('test@example.com', 'Password123');
       expect('error' in result).toBe(true);
       if ('error' in result) {
@@ -151,9 +156,9 @@ describe('Auth Actions', () => {
 
   describe('registerAction', () => {
     it('should register user successfully', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
-      (bcryptjs.hash as jest.Mock).mockResolvedValue('hashed-password');
-      (prisma.user.create as jest.Mock).mockResolvedValue({
+      (prisma.user.findUnique as Mock).mockResolvedValue(null);
+      (bcryptjs.hash as Mock).mockResolvedValue('hashed-password');
+      (prisma.user.create as Mock).mockResolvedValue({
         id: '1',
         email: 'new@example.com',
         name: 'New User',
@@ -170,7 +175,7 @@ describe('Auth Actions', () => {
     })
 
     it('should return error for existing email', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: '1', email: 'existing@example.com' })
+      (prisma.user.findUnique as Mock).mockResolvedValue({ id: '1', email: 'existing@example.com' })
 
       const result = await registerAction('existing@example.com', 'Password123', 'User', 'REVIEWER')
 
@@ -191,7 +196,7 @@ describe('Auth Actions', () => {
     })
 
     it('should return "Internal server error" for other errors', async () => {
-      (prisma.user.findUnique as jest.Mock).mockRejectedValue(new Error('DB error'));
+      (prisma.user.findUnique as Mock).mockRejectedValue(new Error('DB error'));
       const result = await registerAction('test@example.com', 'Password123', 'Test User', 'REVIEWER');
       expect('error' in result).toBe(true);
       if ('error' in result) {
@@ -212,7 +217,7 @@ describe('Auth Actions', () => {
   describe('getCurrentUser', () => {
     it('should return user for valid token', async () => {
       mockCookies.get.mockReturnValue({ value: 'valid-token' });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      (prisma.user.findUnique as Mock).mockResolvedValue({
         id: '1',
         email: 'test@example.com',
         name: 'Test User',
@@ -249,7 +254,7 @@ describe('Auth Actions', () => {
 
     it('should return null if user not found in DB even with valid token', async () => {
       mockCookies.get.mockReturnValue({ value: 'valid-token' });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.user.findUnique as Mock).mockResolvedValue(null);
       const user = await getCurrentUser();
       expect(user).toBeNull();
     });

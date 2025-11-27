@@ -1,27 +1,28 @@
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import EditRestaurantPage from '../page'
 import { getRestaurant } from '@/app/actions/restaurants'
 import { getCurrentUser } from '@/app/actions/auth'
 import { notFound } from 'next/navigation'
 
 // Mock Next.js navigation
-jest.mock('next/navigation', () => ({
-  notFound: jest.fn(() => {
+vi.mock('next/navigation', () => ({
+  notFound: vi.fn(() => {
     throw new Error('NEXT_NOT_FOUND')
   }),
 }))
 
 // Mock server actions
-jest.mock('@/app/actions/restaurants', () => ({
-  getRestaurant: jest.fn(),
+vi.mock('@/app/actions/restaurants', () => ({
+  getRestaurant: vi.fn(),
 }))
 
-jest.mock('@/app/actions/auth', () => ({
-  getCurrentUser: jest.fn(),
+vi.mock('@/app/actions/auth', () => ({
+  getCurrentUser: vi.fn(),
 }))
 
 // Mock RestaurantForm component
-jest.mock('@/components/restaurants/RestaurantForm', () => ({
+vi.mock('@/components/restaurants/RestaurantForm', () => ({
   RestaurantForm: ({ mode, restaurantId, initialData }: any) => (
     <div data-testid="restaurant-form">
       <span>Mode: {mode}</span>
@@ -52,12 +53,12 @@ describe('EditRestaurantPage', () => {
   }
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should render edit restaurant page for owner', async () => {
-    (getRestaurant as jest.Mock).mockResolvedValue(mockRestaurant);
-    (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
+    (getRestaurant as Mock).mockResolvedValue(mockRestaurant);
+    (getCurrentUser as Mock).mockResolvedValue(mockUser);
 
     const page = await EditRestaurantPage({ params: { id: '123' } })
     render(page)
@@ -71,24 +72,24 @@ describe('EditRestaurantPage', () => {
   })
 
   it('should call notFound when restaurant does not exist', async () => {
-    (getRestaurant as jest.Mock).mockResolvedValue(null);
-    (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
+    (getRestaurant as Mock).mockResolvedValue(null);
+    (getCurrentUser as Mock).mockResolvedValue(mockUser);
 
     await expect(EditRestaurantPage({ params: { id: '999' } })).rejects.toThrow('NEXT_NOT_FOUND')
     expect(notFound).toHaveBeenCalled()
   })
 
   it('should call notFound when user is not logged in', async () => {
-    (getRestaurant as jest.Mock).mockResolvedValue(mockRestaurant);
-    (getCurrentUser as jest.Mock).mockResolvedValue(null);
+    (getRestaurant as Mock).mockResolvedValue(mockRestaurant);
+    (getCurrentUser as Mock).mockResolvedValue(null);
 
     await expect(EditRestaurantPage({ params: { id: '123' } })).rejects.toThrow('NEXT_NOT_FOUND')
     expect(notFound).toHaveBeenCalled()
   })
 
   it('should call notFound when user is not the owner', async () => {
-    (getRestaurant as jest.Mock).mockResolvedValue(mockRestaurant);
-    (getCurrentUser as jest.Mock).mockResolvedValue({
+    (getRestaurant as Mock).mockResolvedValue(mockRestaurant);
+    (getCurrentUser as Mock).mockResolvedValue({
       ...mockUser,
       id: 'different-user-id',
     });
@@ -99,8 +100,8 @@ describe('EditRestaurantPage', () => {
 
   it('should handle restaurant without imageUrl', async () => {
     const restaurantWithoutImage = { ...mockRestaurant, imageUrl: null };
-    (getRestaurant as jest.Mock).mockResolvedValue(restaurantWithoutImage);
-    (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
+    (getRestaurant as Mock).mockResolvedValue(restaurantWithoutImage);
+    (getCurrentUser as Mock).mockResolvedValue(mockUser);
 
     const page = await EditRestaurantPage({ params: { id: '123' } })
     render(page)

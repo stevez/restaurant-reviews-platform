@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi } from 'vitest'
 import { ErrorMessage } from '../ErrorMessage'
 
 describe('ErrorMessage', () => {
@@ -15,7 +16,7 @@ describe('ErrorMessage', () => {
   })
 
   it('should render retry button when onRetry is provided', () => {
-    const handleRetry = jest.fn()
+    const handleRetry = vi.fn()
     render(<ErrorMessage message="Error" onRetry={handleRetry} />)
     expect(screen.getByText('Try again')).toBeInTheDocument()
   })
@@ -26,7 +27,7 @@ describe('ErrorMessage', () => {
   })
 
   it('should call onRetry when retry button is clicked', async () => {
-    const handleRetry = jest.fn()
+    const handleRetry = vi.fn()
     render(<ErrorMessage message="Error" onRetry={handleRetry} />)
 
     await userEvent.click(screen.getByText('Try again'))

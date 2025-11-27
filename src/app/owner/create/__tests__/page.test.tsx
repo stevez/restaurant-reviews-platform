@@ -1,29 +1,29 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import AddRestaurantPage from '../page'
 import { createRestaurant } from '@/app/actions/restaurants'
 
 // Mock the server action
-jest.mock('@/app/actions/restaurants', () => ({
-  createRestaurant: jest.fn(),
-  uploadImageAction: jest.fn(),
+vi.mock('@/app/actions/restaurants', () => ({
+  createRestaurant: vi.fn(),
+  uploadImageAction: vi.fn(),
 }))
 
 // Mock next/navigation
-jest.mock('next/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: jest.fn(),
-    refresh: jest.fn()
+    push: vi.fn(),
+    refresh: vi.fn()
   })
 }))
 
 // Mock next/image
-jest.mock('next/image', () => ({
-  __esModule: true,
+vi.mock('next/image', () => ({
   default: ({ src, alt }: any) => <img src={src} alt={alt} />,
 }))
 
 // Mock ImageUploader component
-jest.mock('@/components/restaurants/ImageUploader', () => ({
+vi.mock('@/components/restaurants/ImageUploader', () => ({
   ImageUploader: ({ currentImageUrl, onImageChange, disabled }: any) => (
     <div data-testid="image-uploader">
       <label>Restaurant Image</label>
@@ -40,7 +40,7 @@ jest.mock('@/components/restaurants/ImageUploader', () => ({
 
 describe('Add Restaurant Page', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should render add restaurant form', () => {
@@ -105,7 +105,7 @@ describe('Add Restaurant Page', () => {
   })
 
   it('should call createRestaurant when form is submitted', async () => {
-    (createRestaurant as jest.Mock).mockResolvedValue({ success: true })
+    (createRestaurant as Mock).mockResolvedValue({ success: true })
 
     const { container } = render(<AddRestaurantPage />)
 

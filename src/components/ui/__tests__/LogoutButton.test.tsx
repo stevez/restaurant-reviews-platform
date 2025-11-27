@@ -1,11 +1,12 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import { LogoutButton } from '../LogoutButton'
 import { logoutAction } from '@/app/actions/auth'
 
 // Mock next/navigation
-const mockPush = jest.fn()
-const mockRefresh = jest.fn()
-jest.mock('next/navigation', () => ({
+const mockPush = vi.fn()
+const mockRefresh = vi.fn()
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
     refresh: mockRefresh,
@@ -13,14 +14,14 @@ jest.mock('next/navigation', () => ({
 }))
 
 // Mock server action
-jest.mock('@/app/actions/auth', () => ({
-  logoutAction: jest.fn(),
+vi.mock('@/app/actions/auth', () => ({
+  logoutAction: vi.fn(),
 }))
 
 describe('LogoutButton', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (logoutAction as jest.Mock).mockResolvedValue(undefined);
+    vi.clearAllMocks();
+    (logoutAction as Mock).mockResolvedValue(undefined);
   })
 
   it('should render logout button', () => {

@@ -1,16 +1,17 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import LoginPage from '../page'
 import { loginAction } from '@/app/actions/auth'
 
 // Mock the server action
-jest.mock('@/app/actions/auth', () => ({
-  loginAction: jest.fn()
+vi.mock('@/app/actions/auth', () => ({
+  loginAction: vi.fn()
 }))
 
 // Mock next/navigation
-const mockPush = jest.fn()
-const mockRefresh = jest.fn()
-jest.mock('next/navigation', () => ({
+const mockPush = vi.fn()
+const mockRefresh = vi.fn()
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
     refresh: mockRefresh
@@ -19,7 +20,7 @@ jest.mock('next/navigation', () => ({
 
 describe('Login Page', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should render login form', () => {
@@ -63,7 +64,7 @@ describe('Login Page', () => {
   })
 
   it('should call loginAction when form is submitted with valid data', async () => {
-    (loginAction as jest.Mock).mockResolvedValue({ success: true })
+    (loginAction as Mock).mockResolvedValue({ success: true })
 
     render(<LoginPage />)
 
@@ -86,7 +87,7 @@ describe('Login Page', () => {
   })
 
   it('should display error message on login failure', async () => {
-    (loginAction as jest.Mock).mockResolvedValue({ error: 'Invalid credentials' })
+    (loginAction as Mock).mockResolvedValue({ error: 'Invalid credentials' })
 
     render(<LoginPage />)
 

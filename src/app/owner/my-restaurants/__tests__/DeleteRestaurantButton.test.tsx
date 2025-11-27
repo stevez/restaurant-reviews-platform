@@ -1,22 +1,23 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import { DeleteRestaurantButton } from '../DeleteRestaurantButton'
 import { deleteRestaurant } from '@/app/actions/restaurants'
 
 // Mock next/navigation
-const mockRefresh = jest.fn()
-jest.mock('next/navigation', () => ({
+const mockRefresh = vi.fn()
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     refresh: mockRefresh,
   }),
 }))
 
 // Mock server action
-jest.mock('@/app/actions/restaurants', () => ({
-  deleteRestaurant: jest.fn(),
+vi.mock('@/app/actions/restaurants', () => ({
+  deleteRestaurant: vi.fn(),
 }))
 
 // Mock Button component
-jest.mock('@/components/ui', () => ({
+vi.mock('@/components/ui', () => ({
   Button: ({ children, onClick, disabled, isLoading, size, variant }: any) => (
     <button
       onClick={onClick}
@@ -30,11 +31,11 @@ jest.mock('@/components/ui', () => ({
 }))
 
 // Mock window.alert
-global.alert = jest.fn()
+global.alert = vi.fn()
 
 describe('DeleteRestaurantButton', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should render delete button initially', () => {
@@ -66,7 +67,7 @@ describe('DeleteRestaurantButton', () => {
   })
 
   it('should call deleteRestaurant on confirm', async () => {
-    (deleteRestaurant as jest.Mock).mockResolvedValue({ success: true })
+    (deleteRestaurant as Mock).mockResolvedValue({ success: true })
 
     render(<DeleteRestaurantButton restaurantId="123" />)
 
@@ -80,7 +81,7 @@ describe('DeleteRestaurantButton', () => {
   })
 
   it('should refresh router on successful delete', async () => {
-    (deleteRestaurant as jest.Mock).mockResolvedValue({ success: true })
+    (deleteRestaurant as Mock).mockResolvedValue({ success: true })
 
     render(<DeleteRestaurantButton restaurantId="123" />)
 
@@ -93,7 +94,7 @@ describe('DeleteRestaurantButton', () => {
   })
 
   it('should show alert on delete error', async () => {
-    (deleteRestaurant as jest.Mock).mockResolvedValue({ error: 'Failed to delete' })
+    (deleteRestaurant as Mock).mockResolvedValue({ error: 'Failed to delete' })
 
     render(<DeleteRestaurantButton restaurantId="123" />)
 
@@ -106,7 +107,7 @@ describe('DeleteRestaurantButton', () => {
   })
 
   it('should show default error message when error is not provided', async () => {
-    (deleteRestaurant as jest.Mock).mockResolvedValue({ error: '' })
+    (deleteRestaurant as Mock).mockResolvedValue({ error: '' })
 
     render(<DeleteRestaurantButton restaurantId="123" />)
 
@@ -119,7 +120,7 @@ describe('DeleteRestaurantButton', () => {
   })
 
   it('should hide confirmation dialog after delete completes', async () => {
-    (deleteRestaurant as jest.Mock).mockResolvedValue({ success: true })
+    (deleteRestaurant as Mock).mockResolvedValue({ success: true })
 
     render(<DeleteRestaurantButton restaurantId="123" />)
 

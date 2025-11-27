@@ -1,8 +1,69 @@
-jest.mock('jose')
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+// Create mock token data
+const createMockToken = (payload: any) => {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')
+  const now = Math.floor(Date.now() / 1000)
+  const body = Buffer.from(JSON.stringify({
+    ...payload,
+    iat: now,
+    exp: now + 7 * 24 * 60 * 60 // 7 days
+  })).toString('base64url')
+  const signature = Buffer.from('mock-signature').toString('base64url')
+  return `${header}.${body}.${signature}`
+}
+
+// Mock jose module with proper class constructor
+vi.mock('jose', () => {
+  // Mock SignJWT class
+  class MockSignJWT {
+    private payload: any
+
+    constructor(payload: any) {
+      this.payload = payload
+    }
+
+    setProtectedHeader() {
+      return this
+    }
+
+    setIssuedAt() {
+      return this
+    }
+
+    setExpirationTime() {
+      return this
+    }
+
+    async sign() {
+      return createMockToken(this.payload)
+    }
+  }
+
+  return {
+    SignJWT: MockSignJWT,
+    jwtVerify: vi.fn().mockImplementation((token: string) => {
+      try {
+        const parts = token.split('.')
+        if (parts.length !== 3) {
+          return Promise.reject(new Error('Invalid token format'))
+        }
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+        return Promise.resolve({ payload })
+      } catch {
+        return Promise.reject(new Error('Invalid token'))
+      }
+    })
+  }
+})
 
 import { generateToken, verifyToken } from '../auth'
 
 describe('Auth utilities', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   describe('generateToken', () => {
     it('should generate a valid JWT token', async () => {
       const payload = {
@@ -34,6 +95,7 @@ describe('Auth utilities', () => {
       const token1 = await generateToken(payload1)
       const token2 = await generateToken(payload2)
 
+      // Tokens will be different because payloads are different
       expect(token1).not.toBe(token2)
     })
   })

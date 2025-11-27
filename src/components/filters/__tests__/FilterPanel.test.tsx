@@ -1,16 +1,17 @@
 import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { FilterPanel } from '../FilterPanel'
 
 // Mock next/navigation
-const mockPush = jest.fn()
-jest.mock('next/navigation', () => ({
+const mockPush = vi.fn()
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
 }))
 
 // Mock Button component to simplify testing
-jest.mock('@/components/ui', () => ({
+vi.mock('@/components/ui', () => ({
   Button: ({ children, onClick, disabled, isLoading, variant, className }: any) => (
     <button
       onClick={onClick}
@@ -25,7 +26,7 @@ jest.mock('@/components/ui', () => ({
 
 describe('FilterPanel', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should render filter panel with default values', () => {

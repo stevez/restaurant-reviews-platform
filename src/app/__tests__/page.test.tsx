@@ -1,18 +1,18 @@
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Home from '../page'
 import { prisma } from '@/lib/db'
 
 // Mock Next.js navigation
-const mockPush = jest.fn()
-jest.mock('next/navigation', () => ({
+const mockPush = vi.fn()
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
 }))
 
 // Mock Next.js Image component
-jest.mock('next/image', () => ({
-  __esModule: true,
+vi.mock('next/image', () => ({
   default: (props: any) => {
     // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
     return <img {...props} />
@@ -20,10 +20,10 @@ jest.mock('next/image', () => ({
 }))
 
 // Mock Prisma
-jest.mock('@/lib/db', () => ({
+vi.mock('@/lib/db', () => ({
   prisma: {
     restaurant: {
-      findMany: jest.fn(),
+      findMany: vi.fn(),
     },
   },
 }))
@@ -57,8 +57,8 @@ describe('Home Page', () => {
   ]
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (prisma.restaurant.findMany as jest.Mock).mockResolvedValue(mockRestaurants);
+    vi.clearAllMocks();
+    vi.mocked(prisma.restaurant.findMany).mockResolvedValue(mockRestaurants);
   })
 
   it('should render filter panel', async () => {
@@ -132,7 +132,7 @@ describe('Home Page', () => {
   })
 
   it('should handle empty restaurant results', async () => {
-    (prisma.restaurant.findMany as jest.Mock).mockResolvedValue([])
+    vi.mocked(prisma.restaurant.findMany).mockResolvedValue([])
 
     const page = await Home({ searchParams: {} })
     const { container } = render(page)
@@ -257,7 +257,7 @@ describe('Home Page', () => {
           reviews: [{ rating: 5 }],
         },
       ];
-      (prisma.restaurant.findMany as jest.Mock).mockResolvedValue(mockFilteredRestaurants)
+      vi.mocked(prisma.restaurant.findMany).mockResolvedValue(mockFilteredRestaurants)
 
       const page = await Home({ searchParams: { minRating: '5' } })
       render(page)
@@ -342,7 +342,7 @@ describe('Home Page', () => {
           reviews: [{ rating: 4 }, { rating: 4 }],
         },
       ];
-      (prisma.restaurant.findMany as jest.Mock).mockResolvedValue(mockFilteredRestaurants)
+      vi.mocked(prisma.restaurant.findMany).mockResolvedValue(mockFilteredRestaurants)
 
       const page = await Home({
         searchParams: {

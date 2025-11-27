@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll, Mock, test } from 'vitest'
 import { getRestaurants, getRestaurant, createRestaurant, updateRestaurant, deleteRestaurant, getMyRestaurants } from '../restaurants';
 import { prisma } from '@/lib/db';
 import { getCurrentUser } from '../auth';
@@ -5,28 +6,28 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 // Mock external dependencies
-jest.mock('@/lib/db', () => ({
+vi.mock('@/lib/db', () => ({
   prisma: {
     restaurant: {
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
     },
   },
 }));
 
-jest.mock('../auth', () => ({
-  getCurrentUser: jest.fn(),
+vi.mock('../auth', () => ({
+  getCurrentUser: vi.fn(),
 }));
 
-jest.mock('next/cache', () => ({
-  revalidatePath: jest.fn(),
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
 }));
 
-jest.mock('next/navigation', () => ({
-  redirect: jest.fn(),
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn(),
 }));
 
 // Selectively suppress only expected error logs from server actions
@@ -53,7 +54,7 @@ afterAll(() => {
 
 describe('Restaurant Actions', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getRestaurants', () => {
@@ -72,7 +73,7 @@ describe('Restaurant Actions', () => {
           reviews: [],
         },
       ];
-      (prisma.restaurant.findMany as jest.Mock).mockResolvedValue(mockRestaurants);
+      (prisma.restaurant.findMany as Mock).mockResolvedValue(mockRestaurants);
 
       const result = await getRestaurants();
 
@@ -97,7 +98,7 @@ describe('Restaurant Actions', () => {
           reviews: [{ rating: 4 }],
         },
       ];
-      (prisma.restaurant.findMany as jest.Mock).mockImplementation((options) => {
+      (prisma.restaurant.findMany as Mock).mockImplementation((options) => {
         let filtered = mockRestaurants;
         if (options?.where?.cuisine?.hasSome?.length > 0) {
           const cuisinesToFilter = options.where.cuisine.hasSome;
@@ -132,7 +133,7 @@ describe('Restaurant Actions', () => {
         },
       ];
       // Mock the internal calculation of averageRating by providing it directly
-      (prisma.restaurant.findMany as jest.Mock).mockImplementation(() => {
+      (prisma.restaurant.findMany as Mock).mockImplementation(() => {
         return Promise.resolve(mockRestaurants.map(r => ({
           ...r,
           reviews: r.reviews.map(rev => ({ rating: rev.rating })) // Ensure reviews structure matches
@@ -160,7 +161,7 @@ describe('Restaurant Actions', () => {
           reviews: [{ rating: 4 }], averageRating: 4
         },
       ];
-      (prisma.restaurant.findMany as jest.Mock).mockImplementation(() => {
+      (prisma.restaurant.findMany as Mock).mockImplementation(() => {
         return Promise.resolve(mockRestaurants.map(r => ({
           ...r,
           reviews: r.reviews.map(rev => ({ rating: rev.rating }))
@@ -189,7 +190,7 @@ describe('Restaurant Actions', () => {
           reviews: [{ rating: 4 }], averageRating: 4
         },
       ];
-      (prisma.restaurant.findMany as jest.Mock).mockImplementation(() => {
+      (prisma.restaurant.findMany as Mock).mockImplementation(() => {
         return Promise.resolve(mockRestaurants.map(r => ({
           ...r,
           reviews: r.reviews.map(rev => ({ rating: rev.rating }))
@@ -211,7 +212,7 @@ describe('Restaurant Actions', () => {
         owner: { id: 'owner1', name: 'Owner 1' },
         reviews: [],
       };
-      (prisma.restaurant.findUnique as jest.Mock).mockResolvedValue(mockRestaurant);
+      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
 
       const result = await getRestaurant('1');
 
@@ -243,7 +244,7 @@ describe('Restaurant Actions', () => {
     });
 
     test('should return null if restaurant not found', async () => {
-      (prisma.restaurant.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.restaurant.findUnique as Mock).mockResolvedValue(null);
 
       const result = await getRestaurant('non-existent-id');
 
@@ -253,8 +254,8 @@ describe('Restaurant Actions', () => {
 
   describe('createRestaurant', () => {
     test('should create a new restaurant if user is owner', async () => {
-      (getCurrentUser as jest.Mock).mockResolvedValue({ id: 'owner1', role: 'OWNER' });
-      (prisma.restaurant.create as jest.Mock).mockResolvedValue({ id: 'new-restaurant-id' });
+      (getCurrentUser as Mock).mockResolvedValue({ id: 'owner1', role: 'OWNER' });
+      (prisma.restaurant.create as Mock).mockResolvedValue({ id: 'new-restaurant-id' });
 
       const data = {
         title: 'New Restaurant',
@@ -281,7 +282,7 @@ describe('Restaurant Actions', () => {
     });
 
     test('should return unauthorized if user is not owner', async () => {
-      (getCurrentUser as jest.Mock).mockResolvedValue({ id: 'user1', role: 'REVIEWER' });
+      (getCurrentUser as Mock).mockResolvedValue({ id: 'user1', role: 'REVIEWER' });
 
       const data = {
         title: 'New Restaurant',
@@ -297,7 +298,7 @@ describe('Restaurant Actions', () => {
     });
 
     test('should return unauthorized if no user is logged in', async () => {
-      (getCurrentUser as jest.Mock).mockResolvedValue(null);
+      (getCurrentUser as Mock).mockResolvedValue(null);
 
       const data = {
         title: 'New Restaurant',
@@ -313,8 +314,8 @@ describe('Restaurant Actions', () => {
     });
 
     test('should handle database errors during creation', async () => {
-      (getCurrentUser as jest.Mock).mockResolvedValue({ id: 'owner1', role: 'OWNER' });
-      (prisma.restaurant.create as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (getCurrentUser as Mock).mockResolvedValue({ id: 'owner1', role: 'OWNER' });
+      (prisma.restaurant.create as Mock).mockRejectedValue(new Error('Database error'));
 
       const data = {
         title: 'New Restaurant',
@@ -333,9 +334,9 @@ describe('Restaurant Actions', () => {
     test('should update a restaurant if user is owner and owns the restaurant', async () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'owner1', title: 'Old Title', imageUrl: '/restaurant1.jpg' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as jest.Mock).mockResolvedValue(mockRestaurant);
-      (prisma.restaurant.update as jest.Mock).mockResolvedValue({ ...mockRestaurant, title: 'New Title' });
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
+      (prisma.restaurant.update as Mock).mockResolvedValue({ ...mockRestaurant, title: 'New Title' });
 
       const data = {
         title: 'New Title',
@@ -364,8 +365,8 @@ describe('Restaurant Actions', () => {
     test('should return unauthorized if user does not own the restaurant', async () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'another-owner', title: 'Old Title' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as jest.Mock).mockResolvedValue(mockRestaurant);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
 
       const data = {
         title: 'New Title',
@@ -381,7 +382,7 @@ describe('Restaurant Actions', () => {
     });
 
     test('should return unauthorized if no user is logged in', async () => {
-      (getCurrentUser as jest.Mock).mockResolvedValue(null);
+      (getCurrentUser as Mock).mockResolvedValue(null);
 
       const data = {
         title: 'New Title',
@@ -399,9 +400,9 @@ describe('Restaurant Actions', () => {
     test('should handle database errors during update', async () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'owner1', title: 'Old Title', imageUrl: '/restaurant1.jpg' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as jest.Mock).mockResolvedValue(mockRestaurant);
-      (prisma.restaurant.update as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
+      (prisma.restaurant.update as Mock).mockRejectedValue(new Error('Database error'));
 
       const data = {
         title: 'New Title',
@@ -420,9 +421,9 @@ describe('Restaurant Actions', () => {
     test('should delete a restaurant if user is owner and owns the restaurant', async () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'owner1' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as jest.Mock).mockResolvedValue(mockRestaurant);
-      (prisma.restaurant.delete as jest.Mock).mockResolvedValue(mockRestaurant);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
+      (prisma.restaurant.delete as Mock).mockResolvedValue(mockRestaurant);
 
       const result = await deleteRestaurant('1');
 
@@ -435,8 +436,8 @@ describe('Restaurant Actions', () => {
     test('should return unauthorized if user does not own the restaurant', async () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'another-owner' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as jest.Mock).mockResolvedValue(mockRestaurant);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
 
       const result = await deleteRestaurant('1');
 
@@ -445,7 +446,7 @@ describe('Restaurant Actions', () => {
     });
 
     test('should return unauthorized if no user is logged in', async () => {
-      (getCurrentUser as jest.Mock).mockResolvedValue(null);
+      (getCurrentUser as Mock).mockResolvedValue(null);
 
       const result = await deleteRestaurant('1');
 
@@ -456,9 +457,9 @@ describe('Restaurant Actions', () => {
     test('should handle database errors during deletion', async () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'owner1' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as jest.Mock).mockResolvedValue(mockRestaurant);
-      (prisma.restaurant.delete as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
+      (prisma.restaurant.delete as Mock).mockRejectedValue(new Error('Database error'));
 
       const result = await deleteRestaurant('1');
 
@@ -470,8 +471,8 @@ describe('Restaurant Actions', () => {
     test('should return a list of restaurants owned by the current user', async () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurants = [{ id: '1', ownerId: 'owner1', reviews: [] }];
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findMany as jest.Mock).mockResolvedValue(mockRestaurants);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.restaurant.findMany as Mock).mockResolvedValue(mockRestaurants);
 
       const result = await getMyRestaurants();
 
@@ -485,7 +486,7 @@ describe('Restaurant Actions', () => {
 
     test('should return empty array if user is not owner', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
 
       const result = await getMyRestaurants();
 
@@ -494,7 +495,7 @@ describe('Restaurant Actions', () => {
     });
 
     test('should return empty array if no user is logged in', async () => {
-      (getCurrentUser as jest.Mock).mockResolvedValue(null);
+      (getCurrentUser as Mock).mockResolvedValue(null);
 
       const result = await getMyRestaurants();
 

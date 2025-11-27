@@ -1,4 +1,61 @@
-jest.mock('jose')
+import { describe, it, expect, vi, beforeEach, MockedFunction } from 'vitest'
+
+// Create mock token data
+const createMockToken = (payload: any) => {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')
+  const now = Math.floor(Date.now() / 1000)
+  const body = Buffer.from(JSON.stringify({
+    ...payload,
+    iat: now,
+    exp: now + 7 * 24 * 60 * 60 // 7 days
+  })).toString('base64url')
+  const signature = Buffer.from('mock-signature').toString('base64url')
+  return `${header}.${body}.${signature}`
+}
+
+// Mock jose module with proper class constructor
+vi.mock('jose', () => {
+  // Mock SignJWT class
+  class MockSignJWT {
+    private payload: any
+
+    constructor(payload: any) {
+      this.payload = payload
+    }
+
+    setProtectedHeader() {
+      return this
+    }
+
+    setIssuedAt() {
+      return this
+    }
+
+    setExpirationTime() {
+      return this
+    }
+
+    async sign() {
+      return createMockToken(this.payload)
+    }
+  }
+
+  return {
+    SignJWT: MockSignJWT,
+    jwtVerify: vi.fn().mockImplementation((token: string) => {
+      try {
+        const parts = token.split('.')
+        if (parts.length !== 3) {
+          return Promise.reject(new Error('Invalid token format'))
+        }
+        const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString())
+        return Promise.resolve({ payload })
+      } catch {
+        return Promise.reject(new Error('Invalid token'))
+      }
+    })
+  }
+})
 
 import {
   getCurrentUser,
@@ -10,21 +67,21 @@ import {
 import { cookies } from 'next/headers'
 
 // Mock cookies
-jest.mock('next/headers', () => ({
-  cookies: jest.fn(),
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(),
 }))
 
-const mockCookies = cookies as jest.MockedFunction<typeof cookies>
+const mockCookies = cookies as MockedFunction<typeof cookies>
 
 describe('Auth server utilities', () => {
   let mockCookieStore: any
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     mockCookieStore = {
-      get: jest.fn(),
-      set: jest.fn(),
-      delete: jest.fn(),
+      get: vi.fn(),
+      set: vi.fn(),
+      delete: vi.fn(),
     }
     mockCookies.mockReturnValue(mockCookieStore)
   })

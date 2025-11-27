@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi } from 'vitest'
 import { Input } from '../Input'
 
 describe('Input', () => {
@@ -30,7 +31,7 @@ describe('Input', () => {
   })
 
   it('should handle onChange events', async () => {
-    const handleChange = jest.fn()
+    const handleChange = vi.fn()
     render(<Input onChange={handleChange} />)
 
     const input = screen.getByRole('textbox')

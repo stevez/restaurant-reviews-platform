@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import RestaurantDetailsPage from '../page'
 import { getRestaurant } from '@/app/actions/restaurants'
 import { getCurrentUser } from '@/app/actions/auth'
 import { getMyReview } from '@/app/actions/reviews'
 
 // Mock Next.js Image component
-jest.mock('next/image', () => ({
-  __esModule: true,
+vi.mock('next/image', () => ({
   default: (props: any) => {
     // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text
     return <img {...props} />
@@ -14,21 +14,20 @@ jest.mock('next/image', () => ({
 }))
 
 // Mock server actions
-jest.mock('@/app/actions/restaurants', () => ({
-  getRestaurant: jest.fn()
+vi.mock('@/app/actions/restaurants', () => ({
+  getRestaurant: vi.fn()
 }))
 
-jest.mock('@/app/actions/auth', () => ({
-  getCurrentUser: jest.fn()
+vi.mock('@/app/actions/auth', () => ({
+  getCurrentUser: vi.fn()
 }))
 
-jest.mock('@/app/actions/reviews', () => ({
-  getMyReview: jest.fn()
+vi.mock('@/app/actions/reviews', () => ({
+  getMyReview: vi.fn()
 }))
 
 // Mock ReviewForm component
-jest.mock('@/components/reviews/ReviewForm', () => ({
-  __esModule: true,
+vi.mock('@/components/reviews/ReviewForm', () => ({
   default: ({ restaurantId, existingReview }: any) => (
     <div data-testid="review-form">
       Review Form for {restaurantId}
@@ -82,10 +81,10 @@ describe('Restaurant Details Page', () => {
   }
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (getRestaurant as jest.Mock).mockResolvedValue(mockRestaurant);
-    (getCurrentUser as jest.Mock).mockResolvedValue(null);
-    (getMyReview as jest.Mock).mockResolvedValue(null)
+    vi.clearAllMocks();
+    (getRestaurant as Mock).mockResolvedValue(mockRestaurant);
+    (getCurrentUser as Mock).mockResolvedValue(null);
+    (getMyReview as Mock).mockResolvedValue(null)
   })
 
   it('should render restaurant name', async () => {
@@ -110,7 +109,7 @@ describe('Restaurant Details Page', () => {
   })
 
   it('should render review form when user is reviewer', async () => {
-    (getCurrentUser as jest.Mock).mockResolvedValue({
+    (getCurrentUser as Mock).mockResolvedValue({
       id: '3',
       email: 'reviewer@example.com',
       name: 'Reviewer User',
@@ -124,7 +123,7 @@ describe('Restaurant Details Page', () => {
   })
 
   it('should not render review form when user is not reviewer', async () => {
-    (getCurrentUser as jest.Mock).mockResolvedValue({
+    (getCurrentUser as Mock).mockResolvedValue({
       id: '1',
       email: 'owner@example.com',
       name: 'Owner User',
@@ -155,7 +154,7 @@ describe('Restaurant Details Page', () => {
   })
 
   it('should display message when no reviews exist', async () => {
-    (getRestaurant as jest.Mock).mockResolvedValue({
+    (getRestaurant as Mock).mockResolvedValue({
       ...mockRestaurant,
       reviews: []
     })

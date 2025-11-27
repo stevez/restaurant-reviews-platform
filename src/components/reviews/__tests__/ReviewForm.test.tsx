@@ -1,17 +1,18 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll, Mock } from 'vitest'
 import ReviewForm from '../ReviewForm'
 import { createReview, updateReview } from '@/app/actions/reviews'
 
 // Mock server actions
-jest.mock('@/app/actions/reviews', () => ({
-  createReview: jest.fn(),
-  updateReview: jest.fn()
+vi.mock('@/app/actions/reviews', () => ({
+  createReview: vi.fn(),
+  updateReview: vi.fn()
 }))
 
 // Mock useRouter
-jest.mock('next/navigation', () => ({
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    refresh: jest.fn(),
+    refresh: vi.fn(),
   }),
 }))
 
@@ -36,7 +37,7 @@ afterAll(() => {
 
 describe('ReviewForm', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('Create Review Mode', () => {
@@ -74,7 +75,7 @@ describe('ReviewForm', () => {
     })
 
     it('should call createReview on submit', async () => {
-      (createReview as jest.Mock).mockResolvedValue({ success: true })
+      (createReview as Mock).mockResolvedValue({ success: true })
 
       render(<ReviewForm restaurantId="1" existingReview={null} />)
 
@@ -92,7 +93,7 @@ describe('ReviewForm', () => {
     })
 
     it('should display error on create failure', async () => {
-      (createReview as jest.Mock).mockResolvedValue({ error: 'You have already reviewed this restaurant' })
+      (createReview as Mock).mockResolvedValue({ error: 'You have already reviewed this restaurant' })
 
       render(<ReviewForm restaurantId="1" existingReview={null} />)
 
@@ -105,7 +106,7 @@ describe('ReviewForm', () => {
     })
 
     it('should clear form on successful submit', async () => {
-      (createReview as jest.Mock).mockResolvedValue({ success: true })
+      (createReview as Mock).mockResolvedValue({ success: true })
 
       render(<ReviewForm restaurantId="1" existingReview={null} />)
 
@@ -144,7 +145,7 @@ describe('ReviewForm', () => {
     })
 
     it('should call updateReview on submit', async () => {
-      (updateReview as jest.Mock).mockResolvedValue({ success: true })
+      (updateReview as Mock).mockResolvedValue({ success: true })
 
       render(<ReviewForm restaurantId="1" existingReview={existingReview} />)
 
@@ -160,7 +161,7 @@ describe('ReviewForm', () => {
     })
 
     it('should display error on update failure', async () => {
-      (updateReview as jest.Mock).mockResolvedValue({ error: 'Unauthorized' })
+      (updateReview as Mock).mockResolvedValue({ error: 'Unauthorized' })
 
       render(<ReviewForm restaurantId="1" existingReview={existingReview} />)
 
@@ -186,7 +187,7 @@ describe('ReviewForm', () => {
     })
 
     it('should allow empty comment', async () => {
-      (createReview as jest.Mock).mockResolvedValue({ success: true })
+      (createReview as Mock).mockResolvedValue({ success: true })
 
       render(<ReviewForm restaurantId="1" existingReview={null} />)
 
@@ -200,7 +201,7 @@ describe('ReviewForm', () => {
 
     it('should disable inputs while submitting', async () => {
       let resolveCreate: any
-      (createReview as jest.Mock).mockImplementation(() => new Promise(resolve => { resolveCreate = resolve }))
+      (createReview as Mock).mockImplementation(() => new Promise(resolve => { resolveCreate = resolve }))
 
       render(<ReviewForm restaurantId="1" existingReview={null} />)
 
