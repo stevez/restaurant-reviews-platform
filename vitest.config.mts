@@ -8,7 +8,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
-    pool: 'vmForks',
+    pool: 'forks',
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
