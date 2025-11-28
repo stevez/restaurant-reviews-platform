@@ -1,11 +1,12 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { RestaurantForm } from '../RestaurantForm'
 
 // Mock next/navigation
-const mockPush = jest.fn()
-const mockRefresh = jest.fn()
-const mockBack = jest.fn()
-jest.mock('next/navigation', () => ({
+const mockPush = vi.fn()
+const mockRefresh = vi.fn()
+const mockBack = vi.fn()
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
     refresh: mockRefresh,
@@ -14,20 +15,19 @@ jest.mock('next/navigation', () => ({
 }))
 
 // Mock server actions
-jest.mock('@/app/actions/restaurants', () => ({
-  createRestaurant: jest.fn(),
-  updateRestaurant: jest.fn(),
-  uploadImageAction: jest.fn(),
+vi.mock('@/app/actions/restaurants', () => ({
+  createRestaurant: vi.fn(),
+  updateRestaurant: vi.fn(),
+  uploadImageAction: vi.fn(),
 }))
 
 // Mock next/image
-jest.mock('next/image', () => ({
-  __esModule: true,
+vi.mock('next/image', () => ({
   default: ({ src, alt }: any) => <img src={src} alt={alt} />,
 }))
 
 // Mock ImageUploader component
-jest.mock('../ImageUploader', () => ({
+vi.mock('../ImageUploader', () => ({
   ImageUploader: ({ currentImageUrl, onImageChange, disabled }: any) => (
     <div data-testid="image-uploader">
       <label>Restaurant Image</label>
@@ -43,7 +43,7 @@ jest.mock('../ImageUploader', () => ({
 }))
 
 // Mock UI components
-jest.mock('@/components/ui', () => ({
+vi.mock('@/components/ui', () => ({
   Button: ({ children, onClick, disabled, isLoading, type, variant }: any) => (
     <button onClick={onClick} disabled={disabled || isLoading} type={type} data-variant={variant}>
       {children}
@@ -68,7 +68,7 @@ jest.mock('@/components/ui', () => ({
 
 describe('RestaurantForm', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('Create Mode', () => {
@@ -129,6 +129,24 @@ describe('RestaurantForm', () => {
   })
 
   describe('Edit Mode', () => {
+    it('should render edit mode button text', () => {
+      render(
+        <RestaurantForm
+          mode="edit"
+          restaurantId="123"
+          initialData={{
+            title: 'Test Restaurant',
+            description: 'Test description',
+            location: 'Test location',
+            cuisine: ['Italian'],
+            imageUrl: undefined
+          }}
+        />
+      )
+
+      expect(screen.getByText('Update Restaurant')).toBeInTheDocument()
+    })
+
     // Removed: "should render edit form with initial data" - Test was timing out on initial render
     // React Hook Form takes time to populate form fields with defaultValues in the test environment.
     // The test expected the form to be populated immediately, but the async nature of React Hook Form's

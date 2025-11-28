@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
 import { RestaurantGrid } from '../RestaurantGrid'
 
 // Mock RestaurantCard
-jest.mock('../RestaurantCard', () => ({
+vi.mock('../RestaurantCard', () => ({
   RestaurantCard: ({ title }: any) => <div data-testid="restaurant-card">{title}</div>,
 }))
 

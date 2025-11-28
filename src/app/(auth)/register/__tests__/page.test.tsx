@@ -1,16 +1,17 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import RegisterPage from '../page'
 import { registerAction } from '@/app/actions/auth'
 
 // Mock the server action
-jest.mock('@/app/actions/auth', () => ({
-  registerAction: jest.fn()
+vi.mock('@/app/actions/auth', () => ({
+  registerAction: vi.fn()
 }))
 
 // Mock next/navigation
-const mockPush = jest.fn()
-const mockRefresh = jest.fn()
-jest.mock('next/navigation', () => ({
+const mockPush = vi.fn()
+const mockRefresh = vi.fn()
+vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
     refresh: mockRefresh
@@ -19,7 +20,7 @@ jest.mock('next/navigation', () => ({
 
 describe('Register Page', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should render registration form', () => {
@@ -83,7 +84,7 @@ describe('Register Page', () => {
   })
 
   it('should call registerAction when form is submitted with valid data', async () => {
-    (registerAction as jest.Mock).mockResolvedValue({ success: true })
+    (registerAction as Mock).mockResolvedValue({ success: true })
 
     render(<RegisterPage />)
 
@@ -110,7 +111,7 @@ describe('Register Page', () => {
   })
 
   it('should display error message on registration failure', async () => {
-    (registerAction as jest.Mock).mockResolvedValue({ error: 'Email already registered' })
+    (registerAction as Mock).mockResolvedValue({ error: 'Email already registered' })
 
     render(<RegisterPage />)
 

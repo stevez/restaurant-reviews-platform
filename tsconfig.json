@@ -22,7 +22,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["jest", "@testing-library/jest-dom", "node"]
+    "types": ["@testing-library/jest-dom", "node"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/types/**/*.d.ts", "prisma/**/*.ts"],
   "exclude": ["node_modules"]

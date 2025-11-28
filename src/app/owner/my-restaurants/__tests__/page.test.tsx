@@ -1,16 +1,15 @@
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import MyRestaurantsPage from '../page'
 import { getMyRestaurants } from '@/app/actions/restaurants'
 
 // Mock Next.js Link
-jest.mock('next/link', () => ({
-  __esModule: true,
+vi.mock('next/link', () => ({
   default: ({ children, href }: any) => <a href={href}>{children}</a>,
 }))
 
 // Mock next/image
-jest.mock('next/image', () => ({
-  __esModule: true,
+vi.mock('next/image', () => ({
   default: ({ src, alt, fill, ...props }: any) => {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={alt} {...props} />
@@ -18,12 +17,12 @@ jest.mock('next/image', () => ({
 }))
 
 // Mock server action
-jest.mock('@/app/actions/restaurants', () => ({
-  getMyRestaurants: jest.fn(),
+vi.mock('@/app/actions/restaurants', () => ({
+  getMyRestaurants: vi.fn(),
 }))
 
 // Mock UI components
-jest.mock('@/components/ui', () => ({
+vi.mock('@/components/ui', () => ({
   Button: ({ children, size, variant }: any) => (
     <button data-size={size} data-variant={variant}>
       {children}
@@ -44,7 +43,7 @@ jest.mock('@/components/ui', () => ({
 }))
 
 // Mock DeleteRestaurantButton
-jest.mock('../DeleteRestaurantButton', () => ({
+vi.mock('../DeleteRestaurantButton', () => ({
   DeleteRestaurantButton: ({ restaurantId }: any) => (
     <button data-testid={`delete-${restaurantId}`}>Delete</button>
   ),
@@ -82,11 +81,11 @@ describe('MyRestaurantsPage', () => {
   ]
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should render my restaurants page with restaurants', async () => {
-    (getMyRestaurants as jest.Mock).mockResolvedValue(mockRestaurants);
+    (getMyRestaurants as Mock).mockResolvedValue(mockRestaurants);
 
     const page = await MyRestaurantsPage()
     render(page)
@@ -98,7 +97,7 @@ describe('MyRestaurantsPage', () => {
   })
 
   it('should display restaurant details correctly', async () => {
-    (getMyRestaurants as jest.Mock).mockResolvedValue(mockRestaurants);
+    (getMyRestaurants as Mock).mockResolvedValue(mockRestaurants);
 
     const page = await MyRestaurantsPage()
     render(page)
@@ -110,7 +109,7 @@ describe('MyRestaurantsPage', () => {
   })
 
   it('should display average ratings correctly', async () => {
-    (getMyRestaurants as jest.Mock).mockResolvedValue(mockRestaurants);
+    (getMyRestaurants as Mock).mockResolvedValue(mockRestaurants);
 
     const page = await MyRestaurantsPage()
     render(page)
@@ -125,7 +124,7 @@ describe('MyRestaurantsPage', () => {
   })
 
   it('should render action buttons for each restaurant', async () => {
-    (getMyRestaurants as jest.Mock).mockResolvedValue(mockRestaurants);
+    (getMyRestaurants as Mock).mockResolvedValue(mockRestaurants);
 
     const page = await MyRestaurantsPage()
     render(page)
@@ -140,7 +139,7 @@ describe('MyRestaurantsPage', () => {
   })
 
   it('should render create new restaurant button', async () => {
-    (getMyRestaurants as jest.Mock).mockResolvedValue(mockRestaurants);
+    (getMyRestaurants as Mock).mockResolvedValue(mockRestaurants);
 
     const page = await MyRestaurantsPage()
     render(page)
@@ -150,7 +149,7 @@ describe('MyRestaurantsPage', () => {
   })
 
   it('should display empty state when no restaurants exist', async () => {
-    (getMyRestaurants as jest.Mock).mockResolvedValue([]);
+    (getMyRestaurants as Mock).mockResolvedValue([]);
 
     const page = await MyRestaurantsPage()
     render(page)
@@ -160,7 +159,7 @@ describe('MyRestaurantsPage', () => {
   })
 
   it('should render restaurant image when available', async () => {
-    (getMyRestaurants as jest.Mock).mockResolvedValue(mockRestaurants);
+    (getMyRestaurants as Mock).mockResolvedValue(mockRestaurants);
 
     const page = await MyRestaurantsPage()
     const { container } = render(page)
@@ -172,7 +171,7 @@ describe('MyRestaurantsPage', () => {
   })
 
   it('should not render image container when imageUrl is null', async () => {
-    (getMyRestaurants as jest.Mock).mockResolvedValue([mockRestaurants[1]]);
+    (getMyRestaurants as Mock).mockResolvedValue([mockRestaurants[1]]);
 
     const page = await MyRestaurantsPage()
     const { container } = render(page)
@@ -182,7 +181,7 @@ describe('MyRestaurantsPage', () => {
   })
 
   it('should display cuisine tags for each restaurant', async () => {
-    (getMyRestaurants as jest.Mock).mockResolvedValue(mockRestaurants);
+    (getMyRestaurants as Mock).mockResolvedValue(mockRestaurants);
 
     const page = await MyRestaurantsPage()
     render(page)
@@ -193,7 +192,7 @@ describe('MyRestaurantsPage', () => {
   })
 
   it('should render correct links for edit and view reviews', async () => {
-    (getMyRestaurants as jest.Mock).mockResolvedValue([mockRestaurants[0]]);
+    (getMyRestaurants as Mock).mockResolvedValue([mockRestaurants[0]]);
 
     const page = await MyRestaurantsPage()
     const { container } = render(page)
@@ -219,7 +218,7 @@ describe('MyRestaurantsPage', () => {
       ],
     };
 
-    (getMyRestaurants as jest.Mock).mockResolvedValue([restaurantWithManyReviews]);
+    (getMyRestaurants as Mock).mockResolvedValue([restaurantWithManyReviews]);
 
     const page = await MyRestaurantsPage()
     render(page)

@@ -1,26 +1,27 @@
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll, Mock, test } from 'vitest'
 import { createReview, updateReview, deleteReview, getMyReview } from '../reviews';
 import { prisma } from '@/lib/db';
 import { getCurrentUser } from '../auth';
 import { revalidatePath } from 'next/cache';
 
 // Mock external dependencies
-jest.mock('@/lib/db', () => ({
+vi.mock('@/lib/db', () => ({
   prisma: {
     review: {
-      create: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+      create: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
     },
   },
 }));
 
-jest.mock('../auth', () => ({
-  getCurrentUser: jest.fn(),
+vi.mock('../auth', () => ({
+  getCurrentUser: vi.fn(),
 }));
 
-jest.mock('next/cache', () => ({
-  revalidatePath: jest.fn(),
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
 }));
 
 // Selectively suppress only expected error logs from review actions
@@ -47,16 +48,16 @@ afterAll(() => {
 
 describe('Review Actions', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('createReview', () => {
     test('should create a new review if user is a reviewer and has not reviewed before', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1', rating: 5, comment: 'Great!' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as jest.Mock).mockResolvedValue(null);
-      (prisma.review.create as jest.Mock).mockResolvedValue(mockReview);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.review.findUnique as Mock).mockResolvedValue(null);
+      (prisma.review.create as Mock).mockResolvedValue(mockReview);
 
       const result = await createReview('rest1', 5, 'Great!');
 
@@ -74,7 +75,7 @@ describe('Review Actions', () => {
 
     test('should return unauthorized if user is not a reviewer', async () => {
       const mockUser = { id: 'user1', role: 'OWNER' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
 
       const result = await createReview('rest1', 5, 'Great!');
 
@@ -83,7 +84,7 @@ describe('Review Actions', () => {
     });
 
     test('should return unauthorized if no user is logged in', async () => {
-      (getCurrentUser as jest.Mock).mockResolvedValue(null);
+      (getCurrentUser as Mock).mockResolvedValue(null);
 
       const result = await createReview('rest1', 5, 'Great!');
 
@@ -94,8 +95,8 @@ describe('Review Actions', () => {
     test('should return error if user has already reviewed the restaurant', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const existingReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1', rating: 4 };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as jest.Mock).mockResolvedValue(existingReview);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.review.findUnique as Mock).mockResolvedValue(existingReview);
 
       const result = await createReview('rest1', 5, 'Great!');
 
@@ -105,9 +106,9 @@ describe('Review Actions', () => {
 
     test('should handle database errors during creation', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as jest.Mock).mockResolvedValue(null);
-      (prisma.review.create as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.review.findUnique as Mock).mockResolvedValue(null);
+      (prisma.review.create as Mock).mockRejectedValue(new Error('Database error'));
 
       const result = await createReview('rest1', 5, 'Great!');
 
@@ -120,9 +121,9 @@ describe('Review Actions', () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1', rating: 3, comment: 'Old comment' };
       const updatedReview = { ...mockReview, rating: 5, comment: 'New comment' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockReview);
-      (prisma.review.update as jest.Mock).mockResolvedValue(updatedReview);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
+      (prisma.review.update as Mock).mockResolvedValue(updatedReview);
 
       const result = await updateReview('review1', 5, 'New comment');
 
@@ -137,8 +138,8 @@ describe('Review Actions', () => {
     test('should return unauthorized if user is not the owner of the review', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'another-user', rating: 3 };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockReview);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
 
       const result = await updateReview('review1', 5, 'New comment');
 
@@ -147,7 +148,7 @@ describe('Review Actions', () => {
     });
 
     test('should return unauthorized if no user is logged in', async () => {
-      (getCurrentUser as jest.Mock).mockResolvedValue(null);
+      (getCurrentUser as Mock).mockResolvedValue(null);
 
       const result = await updateReview('review1', 5, 'New comment');
 
@@ -158,9 +159,9 @@ describe('Review Actions', () => {
     test('should handle database errors during update', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1', rating: 3 };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockReview);
-      (prisma.review.update as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
+      (prisma.review.update as Mock).mockRejectedValue(new Error('Database error'));
 
       const result = await updateReview('review1', 5, 'New comment');
 
@@ -172,9 +173,9 @@ describe('Review Actions', () => {
     test('should delete an existing review if user is the owner of the review', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockReview);
-      (prisma.review.delete as jest.Mock).mockResolvedValue(mockReview);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
+      (prisma.review.delete as Mock).mockResolvedValue(mockReview);
 
       const result = await deleteReview('review1');
 
@@ -186,8 +187,8 @@ describe('Review Actions', () => {
     test('should return unauthorized if user is not the owner of the review', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'another-user' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockReview);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
 
       const result = await deleteReview('review1');
 
@@ -196,7 +197,7 @@ describe('Review Actions', () => {
     });
 
     test('should return unauthorized if no user is logged in', async () => {
-      (getCurrentUser as jest.Mock).mockResolvedValue(null);
+      (getCurrentUser as Mock).mockResolvedValue(null);
 
       const result = await deleteReview('review1');
 
@@ -207,9 +208,9 @@ describe('Review Actions', () => {
     test('should handle database errors during deletion', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockReview);
-      (prisma.review.delete as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
+      (prisma.review.delete as Mock).mockRejectedValue(new Error('Database error'));
 
       const result = await deleteReview('review1');
 
@@ -221,8 +222,8 @@ describe('Review Actions', () => {
     test('should return the user\'s review for a specific restaurant', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1', rating: 5 };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as jest.Mock).mockResolvedValue(mockReview);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
 
       const result = await getMyReview('rest1');
 
@@ -238,7 +239,7 @@ describe('Review Actions', () => {
     });
 
     test('should return null if no user is logged in', async () => {
-      (getCurrentUser as jest.Mock).mockResolvedValue(null);
+      (getCurrentUser as Mock).mockResolvedValue(null);
 
       const result = await getMyReview('rest1');
 
@@ -247,8 +248,8 @@ describe('Review Actions', () => {
 
     test('should return null if no review is found', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
-      (getCurrentUser as jest.Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as jest.Mock).mockResolvedValue(null);
+      (getCurrentUser as Mock).mockResolvedValue(mockUser);
+      (prisma.review.findUnique as Mock).mockResolvedValue(null);
 
       const result = await getMyReview('rest1');
 

@@ -1,15 +1,14 @@
 import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
 import { RestaurantCard } from '../RestaurantCard'
 
 // Mock next/link
-jest.mock('next/link', () => ({
-  __esModule: true,
+vi.mock('next/link', () => ({
   default: ({ children, href }: any) => <a href={href}>{children}</a>,
 }))
 
 // Mock next/image
-jest.mock('next/image', () => ({
-  __esModule: true,
+vi.mock('next/image', () => ({
   default: ({ src, alt, fill, ...props }: any) => {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={alt} {...props} />

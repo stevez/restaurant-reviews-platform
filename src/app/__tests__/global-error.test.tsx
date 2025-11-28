@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest'
 import GlobalError from '../global-error'
 
 // Suppress console.error for expected DOM nesting warning
@@ -21,10 +22,10 @@ afterAll(() => {
 
 describe('Global Error Page', () => {
   const mockError = new Error('Critical error')
-  const mockReset = jest.fn()
+  const mockReset = vi.fn()
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should render global error page', () => {

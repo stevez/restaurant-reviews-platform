@@ -1,10 +1,27 @@
+/**
+ * @vitest-environment node
+ */
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest'
+
+// Mock fs modules before importing uploadImage
+vi.mock('fs/promises', () => ({
+  writeFile: vi.fn(),
+  mkdir: vi.fn(),
+}))
+
+vi.mock('fs', () => ({
+  existsSync: vi.fn(),
+}))
+
 import { uploadImage } from '../upload'
 import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 
-// Mock fs modules
-jest.mock('fs/promises')
-jest.mock('fs')
+// Helper to create a mock File with proper arrayBuffer support
+function createMockFile(content: string, name: string, type: string): File {
+  const blob = new Blob([content], { type })
+  return new File([blob], name, { type })
+}
 
 // Selectively suppress only expected error logs from upload action
 const originalError = console.error
@@ -28,10 +45,10 @@ afterAll(() => {
 
 describe('Upload Action', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    (existsSync as jest.Mock).mockReturnValue(true);
-    (writeFile as jest.Mock).mockResolvedValue(undefined);
-    (mkdir as jest.Mock).mockResolvedValue(undefined);
+    vi.clearAllMocks()
+    vi.mocked(existsSync).mockReturnValue(true)
+    vi.mocked(writeFile).mockResolvedValue(undefined)
+    vi.mocked(mkdir).mockResolvedValue(undefined)
   })
 
   it('should return error if file is missing', async () => {
@@ -46,7 +63,7 @@ describe('Upload Action', () => {
   })
 
   it('should return error if file type is not allowed', async () => {
-    const mockFile = new File(['test'], 'test.pdf', { type: 'application/pdf' })
+    const mockFile = createMockFile('test content', 'test.pdf', 'application/pdf')
     const formData = new FormData()
     formData.append('file', mockFile)
 
@@ -59,9 +76,9 @@ describe('Upload Action', () => {
   })
 
   it('should handle file upload errors', async () => {
-    (writeFile as jest.Mock).mockRejectedValue(new Error('Write failed'))
+    vi.mocked(writeFile).mockRejectedValue(new Error('Write failed'))
 
-    const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
+    const mockFile = createMockFile('test content', 'test.jpg', 'image/jpeg')
     const formData = new FormData()
     formData.append('file', mockFile)
 
