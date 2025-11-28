@@ -2,16 +2,24 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { CUISINE_TYPES, MIN_RATING_FILTERS, SORT_OPTIONS, CITIES } from '@/lib/constants'
+import { CUISINE_TYPES, MIN_RATING_FILTERS, SORT_OPTIONS, CITIES, SortOrder, CuisineType } from '@/lib/constants'
 import { Button } from '@/components/ui'
+import { savedPreferencesSchema } from '@/lib/validators';
 
 const FILTER_PREFERENCES_KEY = 'restaurant_filter_preferences'
 
 export interface FilterPanelProps {
-  initialCuisines?: string[]
+  initialCuisines?: CuisineType[]
   initialMinRating?: number
-  initialSort?: 'best' | 'worst'
+  initialSort?: SortOrder,
   initialLocation?: string
+}
+
+interface SavedFilterPreferences {
+  cuisines?: CuisineType[]
+  minRating?: number
+  sort?: SortOrder
+  location?: string
 }
 
 export function FilterPanel({
@@ -24,24 +32,24 @@ export function FilterPanel({
   const [isPending, startTransition] = useTransition()
 
   // Load saved filter preferences from localStorage
-  const getSavedPreferences = () => {
-    if (typeof window === 'undefined') return null
+  const getSavedPreferences = (): SavedFilterPreferences | null => {
     try {
       const saved = localStorage.getItem(FILTER_PREFERENCES_KEY)
-      return saved ? JSON.parse(saved) : null
+      if(!saved) return null;
+      const parsed = savedPreferencesSchema.safeParse(JSON.parse(saved))
+      return parsed.success ? parsed.data : null
     } catch {
       return null
     }
   }
 
-  const [selectedCuisines, setSelectedCuisines] = useState<string[]>(initialCuisines)
+  const [selectedCuisines, setSelectedCuisines] = useState<CuisineType[]>(initialCuisines)
   const [minRating, setMinRating] = useState(initialMinRating)
-  const [sortOrder, setSortOrder] = useState<'best' | 'worst'>(initialSort)
+  const [sortOrder, setSortOrder] = useState<SortOrder>(initialSort)
   const [selectedLocation, setSelectedLocation] = useState(initialLocation)
 
   // Load filter preferences on mount and apply them if no URL params present
   useEffect(() => {
-    if (typeof window === 'undefined') return
 
     // Only load from localStorage if no URL params are present
     const hasUrlParams = initialCuisines.length > 0 || initialMinRating > 0 || initialSort !== 'best' || initialLocation !== ''
@@ -90,7 +98,7 @@ export function FilterPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Only run once on mount
 
-  const handleCuisineToggle = (cuisine: string) => {
+  const handleCuisineToggle = (cuisine: CuisineType) => {
     setSelectedCuisines((prev) =>
       prev.includes(cuisine)
         ? prev.filter((c) => c !== cuisine)
@@ -100,15 +108,13 @@ export function FilterPanel({
 
   const handleApplyFilters = () => {
     // Save all filter preferences to localStorage
-    if (typeof window !== 'undefined') {
-      const preferences = {
+    const preferences: SavedFilterPreferences = {
         cuisines: selectedCuisines,
         minRating,
         sort: sortOrder,
         location: selectedLocation,
-      }
-      localStorage.setItem(FILTER_PREFERENCES_KEY, JSON.stringify(preferences))
     }
+    localStorage.setItem(FILTER_PREFERENCES_KEY, JSON.stringify(preferences))
 
     startTransition(() => {
       const params = new URLSearchParams()
@@ -134,10 +140,7 @@ export function FilterPanel({
     setSortOrder('best')
     setSelectedLocation('')
 
-    // Clear localStorage when resetting
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(FILTER_PREFERENCES_KEY)
-    }
+    localStorage.removeItem(FILTER_PREFERENCES_KEY)
 
     startTransition(() => {
       router.push('/')
@@ -158,7 +161,7 @@ export function FilterPanel({
                 name="sort"
                 value={option.value}
                 checked={sortOrder === option.value}
-                onChange={(e) => setSortOrder(e.target.value as 'best' | 'worst')}
+                onChange={(e) => setSortOrder(e.target.value as SortOrder)}
                 className="mr-2"
               />
               <span>{option.label}</span>

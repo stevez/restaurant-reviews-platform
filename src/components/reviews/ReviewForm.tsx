@@ -24,12 +24,12 @@ export default function ReviewForm({ restaurantId, existingReview }: ReviewFormP
      mode: 'onBlur',
      reValidateMode: 'onChange',
      defaultValues: {
-      rating: existingReview?.rating || 5,
-      comment: existingReview?.comment || '',
+      rating: existingReview?.rating ?? 5,
+      comment: existingReview?.comment ?? '',
     },
   });
 
-  const onSubmit = async (data: ReviewInput) => {
+  const onSubmit = (data: ReviewInput) => {
 
     startTransition(async () => {
       let result;

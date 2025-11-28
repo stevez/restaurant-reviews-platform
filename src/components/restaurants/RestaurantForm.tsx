@@ -6,20 +6,14 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { createRestaurant, updateRestaurant } from '@/app/actions/restaurants'
 import { restaurantSchema, type RestaurantInput } from '@/lib/validators'
-import { CUISINE_TYPES } from '@/lib/constants'
+import { CUISINE_TYPES, type CuisineType } from '@/lib/constants'
 import { Button, Input, ErrorMessage } from '@/components/ui'
 import { ImageUploader } from './ImageUploader'
 
 export interface RestaurantFormProps {
   mode: 'create' | 'edit'
   restaurantId?: string
-  initialData?: {
-    title: string
-    description: string
-    location: string
-    cuisine: string[]
-    imageUrl?: string
-  }
+  initialData?: RestaurantInput
 }
 
 export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFormProps) {
@@ -38,17 +32,18 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
     mode: 'onBlur',
     reValidateMode: 'onChange',
     defaultValues: {
-      title: initialData?.title || '',
-      description: initialData?.description || '',
-      location: initialData?.location || '',
-      imageUrl: initialData?.imageUrl || '',
-      cuisine: initialData?.cuisine || [],
+      title: '',
+      description: '',
+      location: '',
+      imageUrl: '',
+      cuisine: [],
+      ...initialData
     },
   })
 
   const cuisine = watch('cuisine')
 
-  const handleCuisineToggle = (cuisineType: string) => {
+  const handleCuisineToggle = (cuisineType: CuisineType) => {
     const currentCuisine = cuisine || []
     const newCuisine = currentCuisine.includes(cuisineType)
       ? currentCuisine.filter((c) => c !== cuisineType)

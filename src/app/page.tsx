@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/db';
 import { RestaurantGrid } from '@/components/restaurants/RestaurantGrid';
 import { FilterPanel } from '@/components/filters/FilterPanel';
-import { calculateAverageRating } from '@/lib/utils';
+import { getRestaurants } from '@/app/actions/restaurants';
+import { type CuisineType, type SortOrder } from '@/lib/constants';
 
 interface HomePageProps {
   searchParams: {
@@ -14,59 +14,20 @@ interface HomePageProps {
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   // Parse filters from URL
-  const cuisineFilter = searchParams.cuisine?.split(',').filter(Boolean) || [];
-  const minRating = searchParams.minRating ? Number(searchParams.minRating) : 0;
-  const sortOrder = (searchParams.sort as 'best' | 'worst') || 'best';
-  const locationFilter = searchParams.location || '';
+  const cuisines = searchParams.cuisine?.split(',').filter(Boolean) as CuisineType[] | undefined;
+  const minRating = searchParams.minRating ? Number(searchParams.minRating) : undefined;
+  const sort: SortOrder | undefined =
+    searchParams.sort === 'best' || searchParams.sort === 'worst'
+      ? searchParams.sort
+      : undefined;
+  const location = searchParams.location || undefined;
 
-  // Build where clause for filtering
-  const whereClause: any = {};
-
-  if (cuisineFilter.length > 0) {
-    whereClause.cuisine = {
-      hasSome: cuisineFilter
-    };
-  }
-
-  if (locationFilter) {
-    whereClause.location = {
-      contains: locationFilter
-    };
-  }
-
-  // Query restaurants with filters
-  const restaurants = await prisma.restaurant.findMany({
-    where: whereClause,
-    include: {
-      reviews: {
-        select: {
-          rating: true
-        }
-      }
-    },
-  });
-
-  // Calculate average ratings and filter by minimum rating
-  let restaurantsWithRatings = restaurants.map(restaurant => ({
-    ...restaurant,
-    averageRating: calculateAverageRating(restaurant.reviews),
-    reviewCount: restaurant.reviews.length
-  }));
-
-  // Filter by minimum rating (done in-memory since it depends on calculated average)
-  if (minRating > 0) {
-    restaurantsWithRatings = restaurantsWithRatings.filter(
-      restaurant => restaurant.averageRating >= minRating
-    );
-  }
-
-  // Sort by average rating
-  restaurantsWithRatings.sort((a, b) => {
-    if (sortOrder === 'best') {
-      return b.averageRating - a.averageRating; // Highest first
-    } else {
-      return a.averageRating - b.averageRating; // Lowest first
-    }
+  // Fetch restaurants using server action
+  const restaurants = await getRestaurants({
+    cuisines,
+    minRating,
+    sort,
+    location
   });
 
   return (
@@ -75,16 +36,16 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         {/* Sidebar with filters */}
         <aside className="lg:col-span-1">
           <FilterPanel
-            initialCuisines={cuisineFilter}
-            initialMinRating={minRating}
-            initialSort={sortOrder}
-            initialLocation={locationFilter}
+            initialCuisines={cuisines ?? []}
+            initialMinRating={minRating ?? 0}
+            initialSort={sort ?? 'best'}
+            initialLocation={location ?? ''}
           />
         </aside>
 
         {/* Main content */}
         <main className="lg:col-span-3">
-          <RestaurantGrid restaurants={restaurantsWithRatings} />
+          <RestaurantGrid restaurants={restaurants} />
         </main>
       </div>
     </div>

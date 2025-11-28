@@ -1,16 +1,12 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
+import { jwtPayloadSchema, type JWTPayload } from './validators'
 
-export interface AuthPayload {
-  userId: string
-  email: string
-  role: 'REVIEWER' | 'OWNER'
-}
+// Re-export for consumers who import from auth.ts
+export type { JWTPayload }
 
-export interface JWTPayload extends AuthPayload {
-  iat?: number
-  exp?: number
-}
+// AuthPayload is what we put INTO the token (no iat/exp - those are added by jose)
+export type AuthPayload = Omit<JWTPayload, 'iat' | 'exp'>
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const TOKEN_EXPIRY = 7 * 24 * 60 * 60 // 7 days in seconds
@@ -37,22 +33,13 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
   try {
     const { payload } = await jwtVerify(token, getSecretKey())
 
-    // Validate that required fields exist
-    if (
-      typeof payload.userId === 'string' &&
-      typeof payload.email === 'string' &&
-      (payload.role === 'REVIEWER' || payload.role === 'OWNER')
-    ) {
-      return {
-        userId: payload.userId,
-        email: payload.email,
-        role: payload.role as 'REVIEWER' | 'OWNER',
-        iat: payload.iat,
-        exp: payload.exp,
-      }
+    // Validate payload with Zod
+    const result = jwtPayloadSchema.safeParse(payload)
+    if (!result.success) {
+      return null
     }
 
-    return null
+    return result.data
   } catch (error) {
     console.error('Error verifying token:', error)
     return null

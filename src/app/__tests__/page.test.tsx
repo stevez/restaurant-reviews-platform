@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Home from '../page'
-import { prisma } from '@/lib/db'
+import { getRestaurants } from '@/app/actions/restaurants'
+import { type CuisineType } from '@/lib/constants'
 
 // Mock Next.js navigation
 const mockPush = vi.fn()
@@ -19,46 +20,50 @@ vi.mock('next/image', () => ({
   },
 }))
 
-// Mock Prisma
-vi.mock('@/lib/db', () => ({
-  prisma: {
-    restaurant: {
-      findMany: vi.fn(),
-    },
-  },
+// Mock getRestaurants server action
+vi.mock('@/app/actions/restaurants', () => ({
+  getRestaurants: vi.fn(),
 }))
 
 describe('Home Page', () => {
+  // Mock data with averageRating and reviewCount (as returned by getRestaurants)
   const mockRestaurants = [
     {
       id: '1',
       title: 'Test Restaurant 1',
       description: 'A wonderful place to eat with amazing food and service',
       location: 'New York',
-      cuisine: ['Italian'],
+      cuisine: ['Italian'] as CuisineType[],
       imageUrl: '/restaurant1.jpg',
       ownerId: '1',
       createdAt: new Date(),
       updatedAt: new Date(),
       reviews: [{ rating: 5 }, { rating: 4 }],
+      owner: { id: '1', name: 'Owner 1' },
+      averageRating: 4.5,
+      reviewCount: 2,
     },
     {
       id: '2',
       title: 'Test Restaurant 2',
       description: 'Another amazing dining experience with great atmosphere',
       location: 'Chicago',
-      cuisine: ['French'],
+      cuisine: ['French'] as CuisineType[],
       imageUrl: '/restaurant1.jpg',
       ownerId: '2',
       createdAt: new Date(),
       updatedAt: new Date(),
       reviews: [{ rating: 5 }],
+      owner: { id: '2', name: 'Owner 2' },
+      averageRating: 5,
+      reviewCount: 1,
     },
   ]
 
   beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(prisma.restaurant.findMany).mockResolvedValue(mockRestaurants);
+    vi.clearAllMocks()
+    // getRestaurants returns data already sorted by best rating
+    vi.mocked(getRestaurants).mockResolvedValue([mockRestaurants[1], mockRestaurants[0]])
   })
 
   it('should render filter panel', async () => {
@@ -70,18 +75,14 @@ describe('Home Page', () => {
     expect(screen.getByText('Cuisine')).toBeInTheDocument()
   })
 
-  it('should call prisma.restaurant.findMany', async () => {
+  it('should call getRestaurants with parsed filters', async () => {
     await Home({ searchParams: {} })
 
-    expect(prisma.restaurant.findMany).toHaveBeenCalledWith({
-      where: {},
-      include: {
-        reviews: {
-          select: {
-            rating: true,
-          },
-        },
-      },
+    expect(getRestaurants).toHaveBeenCalledWith({
+      cuisines: undefined,
+      minRating: undefined,
+      sort: undefined,
+      location: undefined,
     })
   })
 
@@ -132,7 +133,7 @@ describe('Home Page', () => {
   })
 
   it('should handle empty restaurant results', async () => {
-    vi.mocked(prisma.restaurant.findMany).mockResolvedValue([])
+    vi.mocked(getRestaurants).mockResolvedValue([])
 
     const page = await Home({ searchParams: {} })
     const { container } = render(page)
@@ -166,79 +167,44 @@ describe('Home Page', () => {
     it('should filter restaurants by cuisine', async () => {
       await Home({ searchParams: { cuisine: 'Italian' } })
 
-      expect(prisma.restaurant.findMany).toHaveBeenCalledWith({
-        where: {
-          cuisine: {
-            hasSome: ['Italian'],
-          },
-        },
-        include: {
-          reviews: {
-            select: {
-              rating: true,
-            },
-          },
-        },
+      expect(getRestaurants).toHaveBeenCalledWith({
+        cuisines: ['Italian'],
+        minRating: undefined,
+        sort: undefined,
+        location: undefined,
       })
     })
 
     it('should filter restaurants by multiple cuisines', async () => {
       await Home({ searchParams: { cuisine: 'Italian,French' } })
 
-      expect(prisma.restaurant.findMany).toHaveBeenCalledWith({
-        where: {
-          cuisine: {
-            hasSome: ['Italian', 'French'],
-          },
-        },
-        include: {
-          reviews: {
-            select: {
-              rating: true,
-            },
-          },
-        },
+      expect(getRestaurants).toHaveBeenCalledWith({
+        cuisines: ['Italian', 'French'],
+        minRating: undefined,
+        sort: undefined,
+        location: undefined,
       })
     })
 
     it('should filter restaurants by location', async () => {
       await Home({ searchParams: { location: 'New York' } })
 
-      expect(prisma.restaurant.findMany).toHaveBeenCalledWith({
-        where: {
-          location: {
-            contains: 'New York',
-          },
-        },
-        include: {
-          reviews: {
-            select: {
-              rating: true,
-            },
-          },
-        },
+      expect(getRestaurants).toHaveBeenCalledWith({
+        cuisines: undefined,
+        minRating: undefined,
+        sort: undefined,
+        location: 'New York',
       })
     })
 
     it('should filter by cuisine and location together', async () => {
       await Home({ searchParams: { cuisine: 'Italian', location: 'Chicago' } })
 
-      expect(prisma.restaurant.findMany).toHaveBeenCalledWith({
-        where: {
-          cuisine: {
-            hasSome: ['Italian'],
-          },
-          location: {
-            contains: 'Chicago',
-          },
-        },
-        include: {
-          reviews: {
-            select: {
-              rating: true,
-            },
-          },
-        },
+      expect(getRestaurants).toHaveBeenCalledWith({
+        cuisines: ['Italian'],
+        minRating: undefined,
+        sort: undefined,
+        location: 'Chicago',
       })
     })
 
@@ -249,15 +215,18 @@ describe('Home Page', () => {
           title: 'Test Restaurant 2',
           description: 'Another amazing dining experience with great atmosphere',
           location: 'Chicago',
-          cuisine: ['French'],
+          cuisine: ['French'] as CuisineType[],
           imageUrl: '/restaurant1.jpg',
           ownerId: '2',
           createdAt: new Date(),
           updatedAt: new Date(),
           reviews: [{ rating: 5 }],
+          owner: { id: '2', name: 'Owner 2' },
+          averageRating: 5,
+          reviewCount: 1,
         },
-      ];
-      vi.mocked(prisma.restaurant.findMany).mockResolvedValue(mockFilteredRestaurants)
+      ]
+      vi.mocked(getRestaurants).mockResolvedValue(mockFilteredRestaurants)
 
       const page = await Home({ searchParams: { minRating: '5' } })
       render(page)
@@ -271,15 +240,11 @@ describe('Home Page', () => {
     it('should show all restaurants when no filters applied', async () => {
       await Home({ searchParams: {} })
 
-      expect(prisma.restaurant.findMany).toHaveBeenCalledWith({
-        where: {},
-        include: {
-          reviews: {
-            select: {
-              rating: true,
-            },
-          },
-        },
+      expect(getRestaurants).toHaveBeenCalledWith({
+        cuisines: undefined,
+        minRating: undefined,
+        sort: undefined,
+        location: undefined,
       })
     })
   })
@@ -296,6 +261,9 @@ describe('Home Page', () => {
     })
 
     it('should sort restaurants by worst rating when sort=worst', async () => {
+      // Mock getRestaurants to return data sorted by worst rating
+      vi.mocked(getRestaurants).mockResolvedValue([mockRestaurants[0], mockRestaurants[1]])
+
       const page = await Home({ searchParams: { sort: 'worst' } })
       const { container } = render(page)
 
@@ -322,27 +290,33 @@ describe('Home Page', () => {
           title: 'Italian Restaurant',
           description: 'Great Italian food',
           location: 'New York',
-          cuisine: ['Italian'],
+          cuisine: ['Italian'] as CuisineType[],
           imageUrl: '/restaurant1.jpg',
           ownerId: '1',
           createdAt: new Date(),
           updatedAt: new Date(),
           reviews: [{ rating: 5 }, { rating: 5 }],
+          owner: { id: '1', name: 'Owner 1' },
+          averageRating: 5,
+          reviewCount: 2,
         },
         {
           id: '2',
           title: 'Another Italian Place',
           description: 'Also great Italian food',
           location: 'New York',
-          cuisine: ['Italian'],
+          cuisine: ['Italian'] as CuisineType[],
           imageUrl: '/restaurant2.jpg',
           ownerId: '2',
           createdAt: new Date(),
           updatedAt: new Date(),
           reviews: [{ rating: 4 }, { rating: 4 }],
+          owner: { id: '2', name: 'Owner 2' },
+          averageRating: 4,
+          reviewCount: 2,
         },
-      ];
-      vi.mocked(prisma.restaurant.findMany).mockResolvedValue(mockFilteredRestaurants)
+      ]
+      vi.mocked(getRestaurants).mockResolvedValue(mockFilteredRestaurants)
 
       const page = await Home({
         searchParams: {
@@ -353,27 +327,19 @@ describe('Home Page', () => {
       })
       const { container } = render(page)
 
-      // Should filter by cuisine
-      expect(prisma.restaurant.findMany).toHaveBeenCalledWith({
-        where: {
-          cuisine: {
-            hasSome: ['Italian'],
-          },
-        },
-        include: {
-          reviews: {
-            select: {
-              rating: true,
-            },
-          },
-        },
+      // Should call getRestaurants with correct filters
+      expect(getRestaurants).toHaveBeenCalledWith({
+        cuisines: ['Italian'],
+        minRating: 4,
+        sort: 'best',
+        location: undefined,
       })
 
       // Both restaurants should appear (both have rating >= 4)
       expect(screen.getByText('Italian Restaurant')).toBeInTheDocument()
       expect(screen.getByText('Another Italian Place')).toBeInTheDocument()
 
-      // Should be sorted with best rating first
+      // Should be sorted with best rating first (getRestaurants handles sorting)
       const links = container.querySelectorAll('a')
       expect(links[0]).toHaveAttribute('href', '/reviewer/restaurants/1')
     })

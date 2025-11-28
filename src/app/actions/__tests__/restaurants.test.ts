@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { getCurrentUser } from '../auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { CuisineType } from '@/lib/constants';
 
 // Mock external dependencies
 vi.mock('@/lib/db', () => ({
@@ -110,7 +111,7 @@ describe('Restaurant Actions', () => {
         })));
       });
 
-      const result = await getRestaurants({ cuisine: ['Italian'] });
+      const result = await getRestaurants({ cuisines: ['Italian'] });
 
       expect(result).toHaveLength(2);
       expect(result[0].id).toBe('1');
@@ -261,7 +262,7 @@ describe('Restaurant Actions', () => {
         title: 'New Restaurant',
         description: 'Delicious food',
         location: 'Test City',
-        cuisine: ['Italian'],
+        cuisine: ['Italian'] as CuisineType[],
         imageUrl: 'http://example.com/image.jpg',
       };
 
@@ -272,7 +273,7 @@ describe('Restaurant Actions', () => {
           title: 'New Restaurant',
           description: 'Delicious food',
           location: 'Test City',
-          cuisine: ['Italian'],
+          cuisine: ['Italian'] as CuisineType[],
           imageUrl: 'http://example.com/image.jpg',
           ownerId: 'owner1',
         },
@@ -288,7 +289,7 @@ describe('Restaurant Actions', () => {
         title: 'New Restaurant',
         description: 'A restaurant',
         location: 'City',
-        cuisine: ['Italian'],
+        cuisine: ['Italian'] as CuisineType[],
       };
 
       const result = await createRestaurant(data);
@@ -304,7 +305,7 @@ describe('Restaurant Actions', () => {
         title: 'New Restaurant',
         description: 'A restaurant',
         location: 'City',
-        cuisine: ['Italian'],
+        cuisine: ['Italian'] as CuisineType[],
       };
 
       const result = await createRestaurant(data);
@@ -321,7 +322,7 @@ describe('Restaurant Actions', () => {
         title: 'New Restaurant',
         description: 'A restaurant',
         location: 'City',
-        cuisine: ['Italian'],
+        cuisine: ['Italian'] as CuisineType[],
       };
 
       const result = await createRestaurant(data);
@@ -342,7 +343,7 @@ describe('Restaurant Actions', () => {
         title: 'New Title',
         description: 'New Description',
         location: 'New Location',
-        cuisine: ['French'],
+        cuisine: ['French'] as CuisineType[],
       };
 
       await updateRestaurant('1', data);
@@ -353,7 +354,7 @@ describe('Restaurant Actions', () => {
           title: 'New Title',
           description: 'New Description',
           location: 'New Location',
-          cuisine: ['French'],
+          cuisine: ['French'] as CuisineType[],
           imageUrl: '/restaurant1.jpg',
         },
       });
@@ -372,7 +373,7 @@ describe('Restaurant Actions', () => {
         title: 'New Title',
         description: 'Description',
         location: 'Location',
-        cuisine: ['Italian'],
+        cuisine: ['Italian'] as CuisineType[],
       };
 
       const result = await updateRestaurant('1', data);
@@ -388,7 +389,7 @@ describe('Restaurant Actions', () => {
         title: 'New Title',
         description: 'Description',
         location: 'Location',
-        cuisine: ['Italian'],
+        cuisine: ['Italian'] as CuisineType[],
       };
 
       const result = await updateRestaurant('1', data);
@@ -408,7 +409,7 @@ describe('Restaurant Actions', () => {
         title: 'New Title',
         description: 'Description',
         location: 'Location',
-        cuisine: ['Italian'],
+        cuisine: ['Italian'] as CuisineType[],
       };
 
       const result = await updateRestaurant('1', data);

@@ -6,47 +6,40 @@ import { prisma } from '@/lib/db'
 import { loginSchema, registerSchema } from '@/lib/validators'
 import { generateToken, verifyToken, setTokenCookie } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { Role } from '@prisma/client'
+import { Role, User } from '@prisma/client'
 
-type UserSession = {
-  id: string
-  email: string
-  name: string
-  role: Role
-}
+type UserSession = Pick<User, 'id' | 'email' | 'name' | 'role'>
 
-type AuthSuccessResponse = {
-  success: true
-  user: UserSession
-}
-
-type AuthErrorResponse = {
-  error: string
-  details?: any
-}
+type AuthResponse =
+  | { success: true; user: UserSession }
+  | { success: false; error: string; details?: unknown }
 
 export async function loginAction(
   email: string,
   password: string
-): Promise<AuthSuccessResponse | AuthErrorResponse> {
+): Promise<AuthResponse> {
+  const validated = loginSchema.safeParse({ email, password })
+
+  if (!validated.success) {
+    return { success: false, error: 'Invalid input', details: validated.error.errors }
+  }
+
   try {
-    const validated = loginSchema.parse({ email, password })
-    
     const user = await prisma.user.findUnique({
-      where: { email: validated.email }
+      where: { email: validated.data.email }
     })
-    
+
     if (!user) {
-      return { error: 'Invalid email or password' }
+      return { success: false, error: 'Invalid email or password' }
     }
-    
+
     const isPasswordValid = await bcryptjs.compare(
-      validated.password,
+      validated.data.password,
       user.password
     )
-    
+
     if (!isPasswordValid) {
-      return { error: 'Invalid email or password' }
+      return { success: false, error: 'Invalid email or password' }
     }
 
     const token = await generateToken({
@@ -66,12 +59,9 @@ export async function loginAction(
         role: user.role
       }
     }
-  } catch (error: any) {
-    if (error.name === 'ZodError') {
-      return { error: 'Invalid input', details: error.errors }
-    }
+  } catch (error) {
     console.error('Login error:', error)
-    return { error: 'Internal server error' }
+    return { success: false, error: 'Internal server error' }
   }
 }
 
@@ -79,30 +69,34 @@ export async function registerAction(
   email: string,
   password: string,
   name: string,
-  role: 'REVIEWER' | 'OWNER'
-): Promise<AuthSuccessResponse | AuthErrorResponse> {
+  role: Role
+): Promise<AuthResponse> {
+  const validated = registerSchema.safeParse({ email, password, name, role })
+
+  if (!validated.success) {
+    return { success: false, error: 'Validation failed', details: validated.error.errors }
+  }
+
   try {
-    const validated = registerSchema.parse({ email, password, name, role })
-    
     const existingUser = await prisma.user.findUnique({
-      where: { email: validated.email }
+      where: { email: validated.data.email }
     })
-    
+
     if (existingUser) {
-      return { error: 'Email already registered' }
+      return { success: false, error: 'Email already registered' }
     }
-    
-    const hashedPassword = await bcryptjs.hash(validated.password, 10)
-    
+
+    const hashedPassword = await bcryptjs.hash(validated.data.password, 10)
+
     const user = await prisma.user.create({
       data: {
-        email: validated.email,
+        email: validated.data.email,
         password: hashedPassword,
-        name: validated.name,
-        role: validated.role
+        name: validated.data.name,
+        role: validated.data.role
       }
     })
-    
+
     const token = await generateToken({
       userId: user.id,
       email: user.email,
@@ -120,12 +114,9 @@ export async function registerAction(
         role: user.role
       }
     }
-  } catch (error: any) {
-    if (error.name === 'ZodError') {
-      return { error: 'Validation failed', details: error.errors }
-    }
+  } catch (error) {
     console.error('Registration error:', error)
-    return { error: 'Internal server error' }
+    return { success: false, error: 'Internal server error' }
   }
 }
 

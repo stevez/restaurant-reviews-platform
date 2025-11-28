@@ -1,13 +1,14 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { StarRating } from '@/components/ui'
+import { type CuisineType } from '@/lib/constants';
 
 export interface RestaurantCardProps {
   id: string
   title: string
   description: string
   location: string
-  cuisine: string[]
+  cuisine: CuisineType[]
   imageUrl: string | null
   averageRating: number
   reviewCount: number
