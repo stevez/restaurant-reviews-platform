@@ -13,10 +13,10 @@ export function DeleteRestaurantButton({ restaurantId }: { restaurantId: string 
   const handleDelete = () => {
     startTransition(async () => {
       const result = await deleteRestaurant(restaurantId)
-      if ('success' in result) {
+      if (result.success) {
         router.refresh()
       } else {
-        alert(result.error || 'Failed to delete restaurant')
+        alert(result.error)
       }
       setShowConfirm(false)
     })

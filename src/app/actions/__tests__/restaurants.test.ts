@@ -3,7 +3,6 @@ import { getRestaurants, getRestaurant, createRestaurant, updateRestaurant, dele
 import { prisma } from '@/lib/db';
 import { getCurrentUser } from '../auth';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { CuisineType } from '@/lib/constants';
 
 // Mock external dependencies
@@ -25,10 +24,6 @@ vi.mock('../auth', () => ({
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
-}));
-
-vi.mock('next/navigation', () => ({
-  redirect: vi.fn(),
 }));
 
 // Selectively suppress only expected error logs from server actions
@@ -255,8 +250,9 @@ describe('Restaurant Actions', () => {
 
   describe('createRestaurant', () => {
     test('should create a new restaurant if user is owner', async () => {
+      const mockRestaurant = { id: 'new-restaurant-id', title: 'New Restaurant' };
       (getCurrentUser as Mock).mockResolvedValue({ id: 'owner1', role: 'OWNER' });
-      (prisma.restaurant.create as Mock).mockResolvedValue({ id: 'new-restaurant-id' });
+      (prisma.restaurant.create as Mock).mockResolvedValue(mockRestaurant);
 
       const data = {
         title: 'New Restaurant',
@@ -266,7 +262,7 @@ describe('Restaurant Actions', () => {
         imageUrl: 'http://example.com/image.jpg',
       };
 
-      await createRestaurant(data);
+      const result = await createRestaurant(data);
 
       expect(prisma.restaurant.create).toHaveBeenCalledWith({
         data: {
@@ -279,7 +275,7 @@ describe('Restaurant Actions', () => {
         },
       });
       expect(revalidatePath).toHaveBeenCalledWith('/');
-      expect(redirect).toHaveBeenCalledWith('/owner/my-restaurants');
+      expect(result).toEqual({ success: true, data: mockRestaurant });
     });
 
     test('should return unauthorized if user is not owner', async () => {
@@ -294,7 +290,7 @@ describe('Restaurant Actions', () => {
 
       const result = await createRestaurant(data);
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.restaurant.create).not.toHaveBeenCalled();
     });
 
@@ -310,7 +306,7 @@ describe('Restaurant Actions', () => {
 
       const result = await createRestaurant(data);
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.restaurant.create).not.toHaveBeenCalled();
     });
 
@@ -327,7 +323,7 @@ describe('Restaurant Actions', () => {
 
       const result = await createRestaurant(data);
 
-      expect(result).toEqual({ error: 'Failed to create restaurant' });
+      expect(result).toEqual({ success: false, error: 'Failed to create restaurant' });
     });
   });
 
@@ -335,9 +331,10 @@ describe('Restaurant Actions', () => {
     test('should update a restaurant if user is owner and owns the restaurant', async () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'owner1', title: 'Old Title', imageUrl: '/restaurant1.jpg' };
+      const updatedRestaurant = { ...mockRestaurant, title: 'New Title' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
       (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
-      (prisma.restaurant.update as Mock).mockResolvedValue({ ...mockRestaurant, title: 'New Title' });
+      (prisma.restaurant.update as Mock).mockResolvedValue(updatedRestaurant);
 
       const data = {
         title: 'New Title',
@@ -346,7 +343,7 @@ describe('Restaurant Actions', () => {
         cuisine: ['French'] as CuisineType[],
       };
 
-      await updateRestaurant('1', data);
+      const result = await updateRestaurant('1', data);
 
       expect(prisma.restaurant.update).toHaveBeenCalledWith({
         where: { id: '1' },
@@ -360,7 +357,7 @@ describe('Restaurant Actions', () => {
       });
       expect(revalidatePath).toHaveBeenCalledWith('/owner/my-restaurants');
       expect(revalidatePath).toHaveBeenCalledWith('/reviewer/restaurants/1');
-      expect(redirect).toHaveBeenCalledWith('/owner/my-restaurants');
+      expect(result).toEqual({ success: true, data: updatedRestaurant });
     });
 
     test('should return unauthorized if user does not own the restaurant', async () => {
@@ -378,7 +375,7 @@ describe('Restaurant Actions', () => {
 
       const result = await updateRestaurant('1', data);
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.restaurant.update).not.toHaveBeenCalled();
     });
 
@@ -394,7 +391,7 @@ describe('Restaurant Actions', () => {
 
       const result = await updateRestaurant('1', data);
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.restaurant.update).not.toHaveBeenCalled();
     });
 
@@ -414,7 +411,7 @@ describe('Restaurant Actions', () => {
 
       const result = await updateRestaurant('1', data);
 
-      expect(result).toEqual({ error: 'Failed to update restaurant' });
+      expect(result).toEqual({ success: false, error: 'Failed to update restaurant' });
     });
   });
 
@@ -442,7 +439,7 @@ describe('Restaurant Actions', () => {
 
       const result = await deleteRestaurant('1');
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.restaurant.delete).not.toHaveBeenCalled();
     });
 
@@ -451,7 +448,7 @@ describe('Restaurant Actions', () => {
 
       const result = await deleteRestaurant('1');
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.restaurant.delete).not.toHaveBeenCalled();
     });
 
@@ -464,7 +461,7 @@ describe('Restaurant Actions', () => {
 
       const result = await deleteRestaurant('1');
 
-      expect(result).toEqual({ error: 'Failed to delete restaurant' });
+      expect(result).toEqual({ success: false, error: 'Failed to delete restaurant' });
     });
   });
 

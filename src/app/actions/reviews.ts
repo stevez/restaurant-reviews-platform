@@ -4,16 +4,24 @@ import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { getCurrentUser } from './auth'
 import { Review } from '@prisma/client'
+import { reviewSchema } from '@/lib/validators'
+import { type ActionResult } from '@/types/actions'
 
 export async function createReview(
   restaurantId: string,
   rating: number,
   comment?: string
-): Promise<{ error: string } | { success: true; review: Review }> {
+): Promise<ActionResult<Review>> {
+  const validated = reviewSchema.safeParse({ rating, comment })
+
+  if (!validated.success) {
+    return { success: false, error: 'Invalid input', details: validated.error.errors }
+  }
+
   const user = await getCurrentUser()
-  
+
   if (!user || user.role !== 'REVIEWER') {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   // Check if user already reviewed this restaurant
@@ -27,24 +35,24 @@ export async function createReview(
   })
 
   if (existingReview) {
-    return { error: 'You have already reviewed this restaurant' }
+    return { success: false, error: 'You have already reviewed this restaurant' }
   }
 
   try {
     const review = await prisma.review.create({
       data: {
-        rating,
-        comment,
+        rating: validated.data.rating,
+        comment: validated.data.comment,
         restaurantId,
         userId: user.id
       }
     })
 
     revalidatePath(`/reviewer/restaurants/${restaurantId}`)
-    return { success: true, review }
+    return { success: true, data: review }
   } catch (error) {
     console.error('Create review error:', error)
-    return { error: 'Failed to create review' }
+    return { success: false, error: 'Failed to create review' }
   }
 }
 
@@ -52,11 +60,17 @@ export async function updateReview(
   reviewId: string,
   rating: number,
   comment?: string
-): Promise<{ error: string } | { success: true; review: Review }> {
+): Promise<ActionResult<Review>> {
+  const validated = reviewSchema.safeParse({ rating, comment })
+
+  if (!validated.success) {
+    return { success: false, error: 'Invalid input', details: validated.error.errors }
+  }
+
   const user = await getCurrentUser()
-  
+
   if (!user) {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   const review = await prisma.review.findUnique({
@@ -64,31 +78,31 @@ export async function updateReview(
   })
 
   if (!review || review.userId !== user.id) {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   try {
     const updated = await prisma.review.update({
       where: { id: reviewId },
       data: {
-        rating,
-        comment
+        rating: validated.data.rating,
+        comment: validated.data.comment
       }
     })
 
     revalidatePath(`/reviewer/restaurants/${review.restaurantId}`)
-    return { success: true, review: updated }
+    return { success: true, data: updated }
   } catch (error) {
     console.error('Update review error:', error)
-    return { error: 'Failed to update review' }
+    return { success: false, error: 'Failed to update review' }
   }
 }
 
-export async function deleteReview(reviewId: string): Promise<{ error: string } | { success: true }> {
+export async function deleteReview(reviewId: string): Promise<ActionResult> {
   const user = await getCurrentUser()
-  
+
   if (!user) {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   const review = await prisma.review.findUnique({
@@ -96,7 +110,7 @@ export async function deleteReview(reviewId: string): Promise<{ error: string } 
   })
 
   if (!review || review.userId !== user.id) {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   try {
@@ -108,7 +122,7 @@ export async function deleteReview(reviewId: string): Promise<{ error: string } 
     return { success: true }
   } catch (error) {
     console.error('Delete review error:', error)
-    return { error: 'Failed to delete review' }
+    return { success: false, error: 'Failed to delete review' }
   }
 }
 

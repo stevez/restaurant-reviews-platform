@@ -4,23 +4,24 @@ import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { MAX_IMAGE_SIZE, ALLOWED_IMAGE_TYPES, ERROR_MESSAGES } from '@/lib/constants'
+import { type ActionResult } from '@/types/actions'
 
-export async function uploadImage(formData: FormData): Promise<{ error: string } | { success: true; imageUrl: string }> {
+export async function uploadImage(formData: FormData): Promise<ActionResult<{ imageUrl: string }>> {
   try {
     const file = formData.get('file') as File
 
     if (!file) {
-      return { error: ERROR_MESSAGES.REQUIRED_FIELD }
+      return { success: false, error: ERROR_MESSAGES.REQUIRED_FIELD }
     }
 
     // Validate file size
     if (file.size > MAX_IMAGE_SIZE) {
-      return { error: ERROR_MESSAGES.IMAGE_TOO_LARGE }
+      return { success: false, error: ERROR_MESSAGES.IMAGE_TOO_LARGE }
     }
 
     // Validate file type
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      return { error: ERROR_MESSAGES.INVALID_IMAGE_TYPE }
+      return { success: false, error: ERROR_MESSAGES.INVALID_IMAGE_TYPE }
     }
 
     // Convert file to buffer
@@ -44,9 +45,9 @@ export async function uploadImage(formData: FormData): Promise<{ error: string }
 
     // Return public URL
     const imageUrl = `/uploads/${filename}`
-    return { success: true, imageUrl }
+    return { success: true, data: { imageUrl } }
   } catch (error) {
     console.error('Image upload error:', error)
-    return { error: 'Failed to upload image' }
+    return { success: false, error: 'Failed to upload image' }
   }
 }

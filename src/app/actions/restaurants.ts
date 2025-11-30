@@ -1,11 +1,11 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { writeFile, unlink } from 'fs/promises'
 import path from 'path'
 import { prisma } from '@/lib/db'
 import { restaurantSchema, type RestaurantInput, type SavedPreferences } from '@/lib/validators'
+import { type ActionResult } from '@/types/actions'
 import { getCurrentUser } from './auth'
 import { Restaurant, Review } from '@prisma/client'
 import { calculateAverageRating } from '@/lib/utils'
@@ -108,22 +108,22 @@ export async function getRestaurant(id: string): Promise<RestaurantDetail | null
   }) as RestaurantDetail | null
 }
 
-export async function createRestaurant(data: RestaurantInput): Promise<{ error: string } | never> {
+export async function createRestaurant(data: RestaurantInput): Promise<ActionResult<Restaurant>> {
   const user = await getCurrentUser()
 
   if (!user || user.role !== 'OWNER') {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   // Validate with Zod schema
   const validation = restaurantSchema.safeParse(data)
 
   if (!validation.success) {
-    return { error: validation.error.errors[0].message }
+    return { success: false, error: validation.error.errors[0].message }
   }
 
   try {
-    await prisma.restaurant.create({
+    const restaurant = await prisma.restaurant.create({
       data: {
         title: validation.data.title,
         description: validation.data.description,
@@ -133,20 +133,20 @@ export async function createRestaurant(data: RestaurantInput): Promise<{ error: 
         ownerId: user.id
       }
     })
+
+    revalidatePath('/')
+    return { success: true, data: restaurant }
   } catch (error: any) {
     console.error('Create restaurant error:', error)
-    return { error: 'Failed to create restaurant' }
+    return { success: false, error: 'Failed to create restaurant' }
   }
-
-  revalidatePath('/')
-  redirect(`/owner/my-restaurants`)
 }
 
-export async function updateRestaurant(id: string, data: RestaurantInput): Promise<{ error: string } | never> {
+export async function updateRestaurant(id: string, data: RestaurantInput): Promise<ActionResult<Restaurant>> {
   const user = await getCurrentUser()
 
   if (!user) {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   const restaurant = await prisma.restaurant.findUnique({
@@ -154,14 +154,14 @@ export async function updateRestaurant(id: string, data: RestaurantInput): Promi
   })
 
   if (!restaurant || restaurant.ownerId !== user.id) {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   // Validate with Zod schema
   const validation = restaurantSchema.safeParse(data)
 
   if (!validation.success) {
-    return { error: validation.error.errors[0].message }
+    return { success: false, error: validation.error.errors[0].message }
   }
 
   try {
@@ -175,7 +175,7 @@ export async function updateRestaurant(id: string, data: RestaurantInput): Promi
       await deleteImageAction(restaurant.imageUrl)
     }
 
-    await prisma.restaurant.update({
+    const updatedRestaurant = await prisma.restaurant.update({
       where: { id },
       data: {
         title: validation.data.title,
@@ -185,21 +185,21 @@ export async function updateRestaurant(id: string, data: RestaurantInput): Promi
         imageUrl: validation.data.imageUrl || restaurant.imageUrl || '/restaurant1.jpg',
       }
     })
+
+    revalidatePath(`/owner/my-restaurants`)
+    revalidatePath(`/reviewer/restaurants/${id}`)
+    return { success: true, data: updatedRestaurant }
   } catch (error: any) {
     console.error('Update restaurant error:', error)
-    return { error: 'Failed to update restaurant' }
+    return { success: false, error: 'Failed to update restaurant' }
   }
-
-  revalidatePath(`/owner/my-restaurants`)
-  revalidatePath(`/reviewer/restaurants/${id}`)
-  redirect(`/owner/my-restaurants`)
 }
 
-export async function deleteRestaurant(id: string): Promise<{ error: string } | { success: true }> {
+export async function deleteRestaurant(id: string): Promise<ActionResult> {
   const user = await getCurrentUser()
-  
+
   if (!user) {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   const restaurant = await prisma.restaurant.findUnique({
@@ -207,7 +207,7 @@ export async function deleteRestaurant(id: string): Promise<{ error: string } | 
   })
 
   if (!restaurant || restaurant.ownerId !== user.id) {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   try {
@@ -220,7 +220,7 @@ export async function deleteRestaurant(id: string): Promise<{ error: string } | 
     return { success: true }
   } catch (error) {
     console.error('Delete restaurant error:', error)
-    return { error: 'Failed to delete restaurant' }
+    return { success: false, error: 'Failed to delete restaurant' }
   }
 }
 
@@ -252,32 +252,29 @@ export async function getMyRestaurants(): Promise<RestaurantWithReviews[]> {
   })
 }
 
-export async function uploadImageAction(formData: FormData): Promise<
-  | { error: string }
-  | { success: true; imageUrl: string }
-> {
+export async function uploadImageAction(formData: FormData): Promise<ActionResult<{ imageUrl: string }>> {
   const user = await getCurrentUser()
 
   if (!user || user.role !== 'OWNER') {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   const file = formData.get('image') as File
 
   if (!file) {
-    return { error: 'No file provided' }
+    return { success: false, error: 'No file provided' }
   }
 
   // Validate file type
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
   if (!allowedTypes.includes(file.type)) {
-    return { error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.' }
+    return { success: false, error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.' }
   }
 
   // Validate file size (5MB max)
   const maxSize = 5 * 1024 * 1024 // 5MB in bytes
   if (file.size > maxSize) {
-    return { error: 'File too large. Maximum size is 5MB.' }
+    return { success: false, error: 'File too large. Maximum size is 5MB.' }
   }
 
   try {
@@ -297,21 +294,18 @@ export async function uploadImageAction(formData: FormData): Promise<
     await writeFile(uploadPath, buffer)
 
     // Return the URL path
-    return {
-      success: true,
-      imageUrl: `/uploads/${filename}`
-    }
+    return { success: true, data: { imageUrl: `/uploads/${filename}` } }
   } catch (error) {
     console.error('Image upload error:', error)
-    return { error: 'Failed to upload image' }
+    return { success: false, error: 'Failed to upload image' }
   }
 }
 
-export async function deleteImageAction(imageUrl: string): Promise<{ error: string } | { success: true }> {
+export async function deleteImageAction(imageUrl: string): Promise<ActionResult> {
   const user = await getCurrentUser()
 
   if (!user || user.role !== 'OWNER') {
-    return { error: 'Unauthorized' }
+    return { success: false, error: 'Unauthorized' }
   }
 
   // Don't delete default images

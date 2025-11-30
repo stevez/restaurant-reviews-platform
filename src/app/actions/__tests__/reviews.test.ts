@@ -70,7 +70,7 @@ describe('Review Actions', () => {
         },
       });
       expect(revalidatePath).toHaveBeenCalledWith('/reviewer/restaurants/rest1');
-      expect(result).toEqual({ success: true, review: mockReview });
+      expect(result).toEqual({ success: true, data: mockReview });
     });
 
     test('should return unauthorized if user is not a reviewer', async () => {
@@ -79,7 +79,7 @@ describe('Review Actions', () => {
 
       const result = await createReview('rest1', 5, 'Great!');
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.review.create).not.toHaveBeenCalled();
     });
 
@@ -88,7 +88,7 @@ describe('Review Actions', () => {
 
       const result = await createReview('rest1', 5, 'Great!');
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.review.create).not.toHaveBeenCalled();
     });
 
@@ -100,7 +100,7 @@ describe('Review Actions', () => {
 
       const result = await createReview('rest1', 5, 'Great!');
 
-      expect(result).toEqual({ error: 'You have already reviewed this restaurant' });
+      expect(result).toEqual({ success: false, error: 'You have already reviewed this restaurant' });
       expect(prisma.review.create).not.toHaveBeenCalled();
     });
 
@@ -112,7 +112,7 @@ describe('Review Actions', () => {
 
       const result = await createReview('rest1', 5, 'Great!');
 
-      expect(result).toEqual({ error: 'Failed to create review' });
+      expect(result).toEqual({ success: false, error: 'Failed to create review' });
     });
   });
 
@@ -132,7 +132,7 @@ describe('Review Actions', () => {
         data: { rating: 5, comment: 'New comment' },
       });
       expect(revalidatePath).toHaveBeenCalledWith('/reviewer/restaurants/rest1');
-      expect(result).toEqual({ success: true, review: updatedReview });
+      expect(result).toEqual({ success: true, data: updatedReview });
     });
 
     test('should return unauthorized if user is not the owner of the review', async () => {
@@ -143,7 +143,7 @@ describe('Review Actions', () => {
 
       const result = await updateReview('review1', 5, 'New comment');
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.review.update).not.toHaveBeenCalled();
     });
 
@@ -152,7 +152,7 @@ describe('Review Actions', () => {
 
       const result = await updateReview('review1', 5, 'New comment');
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.review.update).not.toHaveBeenCalled();
     });
 
@@ -165,7 +165,7 @@ describe('Review Actions', () => {
 
       const result = await updateReview('review1', 5, 'New comment');
 
-      expect(result).toEqual({ error: 'Failed to update review' });
+      expect(result).toEqual({ success: false, error: 'Failed to update review' });
     });
   });
 
@@ -192,7 +192,7 @@ describe('Review Actions', () => {
 
       const result = await deleteReview('review1');
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.review.delete).not.toHaveBeenCalled();
     });
 
@@ -201,7 +201,7 @@ describe('Review Actions', () => {
 
       const result = await deleteReview('review1');
 
-      expect(result).toEqual({ error: 'Unauthorized' });
+      expect(result).toEqual({ success: false, error: 'Unauthorized' });
       expect(prisma.review.delete).not.toHaveBeenCalled();
     });
 
@@ -214,7 +214,7 @@ describe('Review Actions', () => {
 
       const result = await deleteReview('review1');
 
-      expect(result).toEqual({ error: 'Failed to delete review' });
+      expect(result).toEqual({ success: false, error: 'Failed to delete review' });
     });
   });
 

@@ -51,12 +51,12 @@ export function ImageUploader({ currentImageUrl, onImageChange, disabled }: Imag
 
       const result = await uploadImageAction(formData)
 
-      if ('error' in result) {
+      if (!result.success) {
         setError(result.error)
         setPreview(currentImageUrl || null)
       } else {
-        onImageChange(result.imageUrl)
-        setPreview(result.imageUrl)
+        onImageChange(result.data.imageUrl)
+        setPreview(result.data.imageUrl)
       }
     } catch (err) {
       setError('Failed to upload image')

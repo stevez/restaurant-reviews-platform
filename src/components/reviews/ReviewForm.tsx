@@ -48,7 +48,7 @@ export default function ReviewForm({ restaurantId, existingReview }: ReviewFormP
         );
       }
 
-      if ('error' in result) {
+      if (!result.success) {
          setError('root', { message: result.error })
       } else {
         reset();
