@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { RestaurantCard } from '../RestaurantCard'
+import { type CuisineType } from '@/lib/constants'
 
 // Mock next/link
 vi.mock('next/link', () => ({
@@ -21,7 +22,7 @@ describe('RestaurantCard', () => {
     title: 'Test Restaurant',
     description: 'A great place to eat',
     location: 'New York, NY',
-    cuisine: ['Italian', 'French', 'American'],
+    cuisine: ['Italian', 'French', 'American'] as CuisineType[],
     imageUrl: '/test-image.jpg',
     averageRating: 4.5,
     reviewCount: 10,
@@ -46,7 +47,7 @@ describe('RestaurantCard', () => {
   it('should limit cuisine display to 3 with overflow', () => {
     const restaurantWithManyCuisines = {
       ...mockRestaurant,
-      cuisine: ['Italian', 'French', 'American', 'Japanese', 'Chinese'],
+      cuisine: ['Italian', 'French', 'American', 'Japanese', 'Chinese'] as CuisineType[],
     }
     render(<RestaurantCard {...restaurantWithManyCuisines} />)
 
