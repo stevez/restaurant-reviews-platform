@@ -10,6 +10,7 @@ export interface ErrorMessageProps {
 export function ErrorMessage({ message, className, onRetry }: ErrorMessageProps) {
   return (
     <div
+      role="alert"
       className={cn(
         'bg-red-50 border border-red-200 rounded-md p-4',
         className
