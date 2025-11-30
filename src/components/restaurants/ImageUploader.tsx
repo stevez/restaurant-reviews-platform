@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { uploadImageAction } from '@/app/actions/restaurants'
 import { Button } from '@/components/ui'
 import Image from 'next/image'
+import { MAX_IMAGE_SIZE, ALLOWED_IMAGE_TYPES, ERROR_MESSAGES } from '@/lib/constants'
 
 interface ImageUploaderProps {
   currentImageUrl?: string
@@ -24,15 +25,13 @@ export function ImageUploader({ currentImageUrl, onImageChange, disabled }: Imag
     setError(null)
 
     // Client-side validation
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-    if (!allowedTypes.includes(file.type)) {
-      setError('Invalid file type. Only JPEG, PNG, and WebP are allowed.')
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setError(ERROR_MESSAGES.INVALID_IMAGE_TYPE)
       return
     }
 
-    const maxSize = 5 * 1024 * 1024 // 5MB
-    if (file.size > maxSize) {
-      setError('File too large. Maximum size is 5MB.')
+    if (file.size > MAX_IMAGE_SIZE) {
+      setError(ERROR_MESSAGES.IMAGE_TOO_LARGE)
       return
     }
 

@@ -9,7 +9,7 @@ import { type ActionResult } from '@/types/actions'
 import { getCurrentUser } from './auth'
 import { Restaurant, Review } from '@prisma/client'
 import { calculateAverageRating } from '@/lib/utils'
-import { type CuisineType } from '@/lib/constants'
+import { type CuisineType, MAX_IMAGE_SIZE, ALLOWED_IMAGE_TYPES, ERROR_MESSAGES } from '@/lib/constants'
 
 type RestaurantWithRating = Omit<Restaurant, 'cuisine'> & {
   cuisine: CuisineType[]
@@ -266,15 +266,13 @@ export async function uploadImageAction(formData: FormData): Promise<ActionResul
   }
 
   // Validate file type
-  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-  if (!allowedTypes.includes(file.type)) {
-    return { success: false, error: 'Invalid file type. Only JPEG, PNG, and WebP are allowed.' }
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return { success: false, error: ERROR_MESSAGES.INVALID_IMAGE_TYPE }
   }
 
-  // Validate file size (5MB max)
-  const maxSize = 5 * 1024 * 1024 // 5MB in bytes
-  if (file.size > maxSize) {
-    return { success: false, error: 'File too large. Maximum size is 5MB.' }
+  // Validate file size
+  if (file.size > MAX_IMAGE_SIZE) {
+    return { success: false, error: ERROR_MESSAGES.IMAGE_TOO_LARGE }
   }
 
   try {
