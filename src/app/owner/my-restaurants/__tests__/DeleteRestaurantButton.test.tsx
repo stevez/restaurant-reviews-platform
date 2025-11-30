@@ -94,7 +94,7 @@ describe('DeleteRestaurantButton', () => {
   })
 
   it('should show alert on delete error', async () => {
-    (deleteRestaurant as Mock).mockResolvedValue({ error: 'Failed to delete' })
+    (deleteRestaurant as Mock).mockResolvedValue({ success: false, error: 'Failed to delete' })
 
     render(<DeleteRestaurantButton restaurantId="123" />)
 
@@ -106,8 +106,8 @@ describe('DeleteRestaurantButton', () => {
     })
   })
 
-  it('should show default error message when error is not provided', async () => {
-    (deleteRestaurant as Mock).mockResolvedValue({ error: '' })
+  it('should show error message from server', async () => {
+    (deleteRestaurant as Mock).mockResolvedValue({ success: false, error: 'Unauthorized' })
 
     render(<DeleteRestaurantButton restaurantId="123" />)
 
@@ -115,7 +115,7 @@ describe('DeleteRestaurantButton', () => {
     fireEvent.click(screen.getByText('Confirm'))
 
     await waitFor(() => {
-      expect(global.alert).toHaveBeenCalledWith('Failed to delete restaurant')
+      expect(global.alert).toHaveBeenCalledWith('Unauthorized')
     })
   })
 

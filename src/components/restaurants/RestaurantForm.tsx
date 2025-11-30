@@ -59,7 +59,9 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
             ? await createRestaurant(data)
             : await updateRestaurant(restaurantId!, data)
 
-        if (result?.error) {
+        if (result.success) {
+          router.push('/owner/my-restaurants')
+        } else {
           setError('root', { message: result.error })
         }
       } catch (err) {
