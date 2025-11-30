@@ -54,7 +54,7 @@ export const JWT_EXPIRY_DAYS = 7
 export const JWT_EXPIRY_SECONDS = JWT_EXPIRY_DAYS * 24 * 60 * 60
 
 export const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
-export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 export const MIN_IMAGE_WIDTH = 400
 export const MIN_IMAGE_HEIGHT = 300
 
