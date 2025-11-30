@@ -16,7 +16,7 @@ vi.mock('@/app/actions/restaurants', () => ({
   deleteRestaurant: vi.fn(),
 }))
 
-// Mock Button component
+// Mock UI components
 vi.mock('@/components/ui', () => ({
   Button: ({ children, onClick, disabled, isLoading, size, variant }: any) => (
     <button
@@ -28,10 +28,10 @@ vi.mock('@/components/ui', () => ({
       {children}
     </button>
   ),
+  ErrorMessage: ({ message }: { message: string }) => (
+    <div role="alert">{message}</div>
+  ),
 }))
-
-// Mock window.alert
-global.alert = vi.fn()
 
 describe('DeleteRestaurantButton', () => {
   beforeEach(() => {
@@ -93,7 +93,7 @@ describe('DeleteRestaurantButton', () => {
     })
   })
 
-  it('should show alert on delete error', async () => {
+  it('should show error message on delete error', async () => {
     (deleteRestaurant as Mock).mockResolvedValue({ success: false, error: 'Failed to delete' })
 
     render(<DeleteRestaurantButton restaurantId="123" />)
@@ -102,7 +102,7 @@ describe('DeleteRestaurantButton', () => {
     fireEvent.click(screen.getByText('Confirm'))
 
     await waitFor(() => {
-      expect(global.alert).toHaveBeenCalledWith('Failed to delete')
+      expect(screen.getByRole('alert')).toHaveTextContent('Failed to delete')
     })
   })
 
@@ -115,7 +115,7 @@ describe('DeleteRestaurantButton', () => {
     fireEvent.click(screen.getByText('Confirm'))
 
     await waitFor(() => {
-      expect(global.alert).toHaveBeenCalledWith('Unauthorized')
+      expect(screen.getByRole('alert')).toHaveTextContent('Unauthorized')
     })
   })
 

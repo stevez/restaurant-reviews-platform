@@ -3,20 +3,22 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteRestaurant } from '@/app/actions/restaurants'
-import { Button } from '@/components/ui'
+import { Button, ErrorMessage } from '@/components/ui'
 
 export function DeleteRestaurantButton({ restaurantId }: { restaurantId: string }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [showConfirm, setShowConfirm] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleDelete = () => {
+    setError(null)
     startTransition(async () => {
       const result = await deleteRestaurant(restaurantId)
       if (result.success) {
         router.refresh()
       } else {
-        alert(result.error)
+        setError(result.error)
       }
       setShowConfirm(false)
     })
@@ -47,8 +49,11 @@ export function DeleteRestaurantButton({ restaurantId }: { restaurantId: string 
   }
 
   return (
-    <Button size="sm" variant="danger" onClick={() => setShowConfirm(true)}>
-      Delete
-    </Button>
+    <div className="flex flex-col gap-2">
+      {error && <ErrorMessage message={error} />}
+      <Button size="sm" variant="danger" onClick={() => setShowConfirm(true)}>
+        Delete
+      </Button>
+    </div>
   )
 }
