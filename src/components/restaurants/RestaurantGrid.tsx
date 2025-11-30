@@ -1,11 +1,12 @@
 import { RestaurantCard } from './RestaurantCard'
+import { type CuisineType } from '@/lib/constants'
 
 export interface Restaurant {
   id: string
   title: string
   description: string
   location: string
-  cuisine: string[]
+  cuisine: CuisineType[]
   imageUrl: string | null
   averageRating: number
   reviewCount: number

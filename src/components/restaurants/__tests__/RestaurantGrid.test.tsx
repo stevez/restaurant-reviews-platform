@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { RestaurantGrid } from '../RestaurantGrid'
+import { type CuisineType } from '@/lib/constants'
 
 // Mock RestaurantCard
 vi.mock('../RestaurantCard', () => ({
@@ -14,7 +15,7 @@ describe('RestaurantGrid', () => {
       title: 'Restaurant 1',
       description: 'Description 1',
       location: 'Location 1',
-      cuisine: ['Italian'],
+      cuisine: ['Italian'] as CuisineType[],
       imageUrl: null,
       averageRating: 4.5,
       reviewCount: 10,
@@ -24,7 +25,7 @@ describe('RestaurantGrid', () => {
       title: 'Restaurant 2',
       description: 'Description 2',
       location: 'Location 2',
-      cuisine: ['French'],
+      cuisine: ['French'] as CuisineType[],
       imageUrl: null,
       averageRating: 4.0,
       reviewCount: 5,

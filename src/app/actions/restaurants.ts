@@ -5,34 +5,42 @@ import { redirect } from 'next/navigation'
 import { writeFile, unlink } from 'fs/promises'
 import path from 'path'
 import { prisma } from '@/lib/db'
-import { restaurantSchema, type RestaurantInput } from '@/lib/validators'
+import { restaurantSchema, type RestaurantInput, type SavedPreferences } from '@/lib/validators'
 import { getCurrentUser } from './auth'
 import { Restaurant, Review } from '@prisma/client'
 import { calculateAverageRating } from '@/lib/utils'
+import { type CuisineType } from '@/lib/constants'
 
-type RestaurantWithRating = Restaurant & {
+type RestaurantWithRating = Omit<Restaurant, 'cuisine'> & {
+  cuisine: CuisineType[]
   reviews: { rating: number }[]
   owner: { id: string; name: string }
   averageRating: number
+  reviewCount: number
 }
 
-type RestaurantDetail = Restaurant & {
+type RestaurantDetail = Omit<Restaurant, 'cuisine'> & {
+  cuisine: CuisineType[]
   owner: { id: string; name: string }
   reviews: (Review & {
     user: { id: string; name: string }
   })[]
 }
 
-export async function getRestaurants(filters?: {
-  cuisine?: string[]
-  minRating?: number
-  sort?: 'best' | 'worst'
-}): Promise<RestaurantWithRating[]> {
+export async function getRestaurants(
+  filters?: SavedPreferences
+): Promise<RestaurantWithRating[]> {
   const restaurants = await prisma.restaurant.findMany({
     where: {
-      ...(filters?.cuisine && filters.cuisine.length > 0 && {
+      ...(filters?.cuisines && filters.cuisines.length > 0 && {
         cuisine: {
-          hasSome: filters.cuisine
+          hasSome: filters.cuisines
+        }
+      }),
+      ...(filters?.location && {
+        location: {
+          contains: filters.location,
+          mode: 'insensitive'
         }
       })
     },
@@ -51,10 +59,11 @@ export async function getRestaurants(filters?: {
     }
   })
 
-  // Calculate ratings and filter
+  // Calculate ratings and review count
   const withRatings = restaurants.map(r => ({
     ...r,
-    averageRating: calculateAverageRating(r.reviews)
+    averageRating: calculateAverageRating(r.reviews),
+    reviewCount: r.reviews.length
   }))
 
   // Filter by minimum rating
@@ -69,7 +78,7 @@ export async function getRestaurants(filters?: {
     filtered.sort((a, b) => b.averageRating - a.averageRating)
   }
 
-  return filtered
+  return filtered as RestaurantWithRating[]
 }
 
 export async function getRestaurant(id: string): Promise<RestaurantDetail | null> {
@@ -96,7 +105,7 @@ export async function getRestaurant(id: string): Promise<RestaurantDetail | null
         }
       }
     }
-  })
+  }) as RestaurantDetail | null
 }
 
 export async function createRestaurant(data: RestaurantInput): Promise<{ error: string } | never> {

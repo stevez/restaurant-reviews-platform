@@ -43,6 +43,8 @@ export const MIN_RATING_FILTERS = [
   { value: 5, label: '5 Stars' },
 ] as const
 
+export const SORT_VALUES = ['best', 'worst'] as const
+
 export const SORT_OPTIONS = [
   { value: 'best', label: 'Best Rated' },
   { value: 'worst', label: 'Worst Rated' },
@@ -84,3 +86,6 @@ export const ROUTE_PATHS = {
   OWNER_MY_RESTAURANTS: '/owner/my-restaurants',
   OWNER_CREATE: '/owner/create',
 } as const
+
+export type SortOrder = typeof SORT_VALUES[number]
+export type CuisineType = typeof CUISINE_TYPES[number]

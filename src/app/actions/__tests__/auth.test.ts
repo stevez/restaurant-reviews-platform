@@ -96,8 +96,8 @@ describe('Auth Actions', () => {
 
       const result = await loginAction('test@example.com', 'Password123')
 
-      expect('success' in result).toBe(true)
-      if ('success' in result) {
+      expect(result.success).toBe(true)
+      if (result.success) {
         expect(result.user.email).toBe('test@example.com')
       }
       expect(setTokenCookie).toHaveBeenCalledWith('mock-token')
@@ -108,8 +108,8 @@ describe('Auth Actions', () => {
 
       const result = await loginAction('test@example.com', 'wrong')
 
-      expect('error' in result).toBe(true)
-      if ('error' in result) {
+      expect(result.success).toBe(false)
+      if (!result.success) {
         expect(result.error).toBe('Invalid email or password')
       }
     })
@@ -128,8 +128,8 @@ describe('Auth Actions', () => {
 
       const result = await loginAction('test@example.com', 'wrong')
 
-      expect('error' in result).toBe(true)
-      if ('error' in result) {
+      expect(result.success).toBe(false)
+      if (!result.success) {
         expect(result.error).toBe('Invalid email or password')
       }
     })
@@ -137,8 +137,8 @@ describe('Auth Actions', () => {
     it('should return "Invalid input" for ZodError', async () => {
       const result = await loginAction('invalid-email', 'short')
 
-      expect('error' in result).toBe(true)
-      if ('error' in result) {
+      expect(result.success).toBe(false)
+      if (!result.success) {
         expect(result.error).toBe('Invalid input')
         expect(result.details).toBeInstanceOf(Array)
       }
@@ -147,8 +147,8 @@ describe('Auth Actions', () => {
     it('should return "Internal server error" for other errors', async () => {
       (prisma.user.findUnique as Mock).mockRejectedValue(new Error('DB error'));
       const result = await loginAction('test@example.com', 'Password123');
-      expect('error' in result).toBe(true);
-      if ('error' in result) {
+      expect(result.success).toBe(false);
+      if (!result.success) {
         expect(result.error).toBe('Internal server error');
       }
     });
@@ -167,8 +167,8 @@ describe('Auth Actions', () => {
 
       const result = await registerAction('new@example.com', 'Password123', 'New User', 'REVIEWER')
 
-      expect('success' in result).toBe(true)
-      if ('success' in result) {
+      expect(result.success).toBe(true)
+      if (result.success) {
         expect(result.user.email).toBe('new@example.com')
       }
       expect(setTokenCookie).toHaveBeenCalledWith('mock-token')
@@ -179,8 +179,8 @@ describe('Auth Actions', () => {
 
       const result = await registerAction('existing@example.com', 'Password123', 'User', 'REVIEWER')
 
-      expect('error' in result).toBe(true)
-      if ('error' in result) {
+      expect(result.success).toBe(false)
+      if (!result.success) {
         expect(result.error).toBe('Email already registered')
       }
     })
@@ -188,8 +188,8 @@ describe('Auth Actions', () => {
     it('should return "Validation failed" for ZodError', async () => {
       const result = await registerAction('invalid', 'short', '', 'REVIEWER')
 
-      expect('error' in result).toBe(true)
-      if ('error' in result) {
+      expect(result.success).toBe(false)
+      if (!result.success) {
         expect(result.error).toBe('Validation failed')
         expect(result.details).toBeInstanceOf(Array)
       }
@@ -198,8 +198,8 @@ describe('Auth Actions', () => {
     it('should return "Internal server error" for other errors', async () => {
       (prisma.user.findUnique as Mock).mockRejectedValue(new Error('DB error'));
       const result = await registerAction('test@example.com', 'Password123', 'Test User', 'REVIEWER');
-      expect('error' in result).toBe(true);
-      if ('error' in result) {
+      expect(result.success).toBe(false);
+      if (!result.success) {
         expect(result.error).toBe('Internal server error');
       }
     });

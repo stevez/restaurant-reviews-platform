@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { CUISINE_TYPES, SORT_VALUES } from './constants'
 
 export const emailSchema = z
   .string()
@@ -28,7 +29,7 @@ export const restaurantSchema = z.object({
   title: z.string().min(1, 'Title is required').max(255),
   description: z.string().min(1, 'Description is required').max(2000),
   location: z.string().min(1, 'Location is required').max(500),
-  cuisine: z.array(z.string()).min(1, 'At least one cuisine is required'),
+  cuisine: z.array(z.enum(CUISINE_TYPES)).min(1, 'At least one cuisine is required'),
   imageUrl: z
     .string()
     .refine(
@@ -66,7 +67,24 @@ export const reviewSchema = z.object({
   comment: z.string().max(1000, 'Comment must be 1000 characters or less').optional(),
 })
 
+export const savedPreferencesSchema = z.object({
+  cuisines: z.array(z.enum(CUISINE_TYPES)).optional(),
+  minRating: z.number().optional(),
+  sort: z.enum(SORT_VALUES).optional(),
+  location: z.string().optional(),
+})
+
+export const jwtPayloadSchema = z.object({
+  userId: z.string(),
+  email: z.string(),
+  role: z.enum(['REVIEWER', 'OWNER']),
+  iat: z.number().optional(),
+  exp: z.number().optional(),
+})
+
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type RestaurantInput = z.infer<typeof restaurantSchema>
 export type ReviewInput = z.infer<typeof reviewSchema>
+export type JWTPayload = z.infer<typeof jwtPayloadSchema>
+export type SavedPreferences = z.infer<typeof savedPreferencesSchema>
