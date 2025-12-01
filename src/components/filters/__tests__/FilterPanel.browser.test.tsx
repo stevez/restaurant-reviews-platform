@@ -1,4 +1,5 @@
 import { render } from 'vitest-browser-react'
+import { page } from 'vitest/browser'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock next/navigation BEFORE importing the component
@@ -40,68 +41,68 @@ describe('FilterPanel Browser Tests', () => {
   })
 
   it('should render all filter sections', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    await expect.element(screen.getByRole('heading', { name: 'Sort By' })).toBeVisible()
-    await expect.element(screen.getByRole('heading', { name: 'Minimum Rating' })).toBeVisible()
-    await expect.element(screen.getByRole('heading', { name: 'Location' })).toBeVisible()
-    await expect.element(screen.getByRole('heading', { name: 'Cuisine' })).toBeVisible()
+    await expect.element(page.getByRole('heading', { name: 'Sort By' })).toBeVisible()
+    await expect.element(page.getByRole('heading', { name: 'Minimum Rating' })).toBeVisible()
+    await expect.element(page.getByRole('heading', { name: 'Location' })).toBeVisible()
+    await expect.element(page.getByRole('heading', { name: 'Cuisine' })).toBeVisible()
   })
 
   it('should render Apply Filters button', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    await expect.element(screen.getByRole('button', { name: 'Apply Filters' })).toBeVisible()
+    await expect.element(page.getByRole('button', { name: 'Apply Filters' })).toBeVisible()
   })
 
   it('should not show Reset button when no filters are active', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    const resetButton = screen.getByRole('button', { name: 'Reset Filters' })
+    const resetButton = page.getByRole('button', { name: 'Reset Filters' })
     await expect.element(resetButton).not.toBeInTheDocument()
   })
 
   it('should show Reset button when cuisines are selected', async () => {
-    const screen = await render(<FilterPanel initialCuisines={['Italian']} />)
+    await render(<FilterPanel initialCuisines={['Italian']} />)
 
-    await expect.element(screen.getByRole('button', { name: 'Reset Filters' })).toBeVisible()
+    await expect.element(page.getByRole('button', { name: 'Reset Filters' })).toBeVisible()
   })
 
   it('should render sort options', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    await expect.element(screen.getByText('Best Rated')).toBeVisible()
-    await expect.element(screen.getByText('Worst Rated')).toBeVisible()
+    await expect.element(page.getByText('Best Rated')).toBeVisible()
+    await expect.element(page.getByText('Worst Rated')).toBeVisible()
   })
 
   it('should have Best Rated selected by default', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    const bestRatedRadio = screen.getByRole('radio', { name: 'Best Rated' })
+    const bestRatedRadio = page.getByRole('radio', { name: 'Best Rated' })
     await expect.element(bestRatedRadio).toBeChecked()
   })
 
   it('should change sort order when clicking a different option', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    const worstRatedRadio = screen.getByRole('radio', { name: 'Worst Rated' })
+    const worstRatedRadio = page.getByRole('radio', { name: 'Worst Rated' })
     await worstRatedRadio.click()
 
     await expect.element(worstRatedRadio).toBeChecked()
   })
 
   it('should render cuisine checkboxes', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    await expect.element(screen.getByLabelText('Italian')).toBeVisible()
-    await expect.element(screen.getByLabelText('Chinese')).toBeVisible()
-    await expect.element(screen.getByLabelText('Japanese')).toBeVisible()
+    await expect.element(page.getByLabelText('Italian')).toBeVisible()
+    await expect.element(page.getByLabelText('Chinese')).toBeVisible()
+    await expect.element(page.getByLabelText('Japanese')).toBeVisible()
   })
 
   it('should toggle cuisine selection when clicking checkbox', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    const italianCheckbox = screen.getByLabelText('Italian')
+    const italianCheckbox = page.getByLabelText('Italian')
     await expect.element(italianCheckbox).not.toBeChecked()
 
     await italianCheckbox.click()
@@ -112,27 +113,27 @@ describe('FilterPanel Browser Tests', () => {
   })
 
   it('should have initial cuisines pre-selected', async () => {
-    const screen = await render(<FilterPanel initialCuisines={['Italian', 'Chinese']} />)
+    await render(<FilterPanel initialCuisines={['Italian', 'Chinese']} />)
 
-    await expect.element(screen.getByLabelText('Italian')).toBeChecked()
-    await expect.element(screen.getByLabelText('Chinese')).toBeChecked()
-    await expect.element(screen.getByLabelText('Japanese')).not.toBeChecked()
+    await expect.element(page.getByLabelText('Italian')).toBeChecked()
+    await expect.element(page.getByLabelText('Chinese')).toBeChecked()
+    await expect.element(page.getByLabelText('Japanese')).not.toBeChecked()
   })
 
   it('should call router.push when Apply Filters is clicked', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    await screen.getByLabelText('Italian').click()
-    await screen.getByRole('button', { name: 'Apply Filters' }).click()
+    await page.getByLabelText('Italian').click()
+    await page.getByRole('button', { name: 'Apply Filters' }).click()
 
     expect(mockPush).toHaveBeenCalled()
   })
 
   it('should save preferences to localStorage when applying filters', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    await screen.getByLabelText('Italian').click()
-    await screen.getByRole('button', { name: 'Apply Filters' }).click()
+    await page.getByLabelText('Italian').click()
+    await page.getByRole('button', { name: 'Apply Filters' }).click()
 
     const saved = localStorage.getItem('restaurant_filter_preferences')
     expect(saved).not.toBeNull()
@@ -142,30 +143,30 @@ describe('FilterPanel Browser Tests', () => {
 
   // Tests for initial values
   it('should render with initial sort order', async () => {
-    const screen = await render(<FilterPanel initialSort="worst" />)
+    await render(<FilterPanel initialSort="worst" />)
 
-    const worstRatedRadio = screen.getByRole('radio', { name: 'Worst Rated' })
+    const worstRatedRadio = page.getByRole('radio', { name: 'Worst Rated' })
     await expect.element(worstRatedRadio).toBeChecked()
   })
 
   it('should render with initial minimum rating', async () => {
-    const screen = await render(<FilterPanel initialMinRating={4} />)
+    await render(<FilterPanel initialMinRating={4} />)
 
     // First combobox is Minimum Rating, second is Location
-    const selects = screen.getByRole('combobox').all()
+    const selects = page.getByRole('combobox').all()
     await expect.element(selects[0]).toHaveValue('4')
   })
 
   it('should render with initial location', async () => {
-    const screen = await render(<FilterPanel initialLocation="Chicago" />)
+    await render(<FilterPanel initialLocation="Chicago" />)
 
     // First combobox is Minimum Rating, second is Location
-    const selects = screen.getByRole('combobox').all()
+    const selects = page.getByRole('combobox').all()
     await expect.element(selects[1]).toHaveValue('Chicago')
   })
 
   it('should render with all initial values combined', async () => {
-    const screen = await render(
+    await render(
       <FilterPanel
         initialCuisines={['Italian', 'French']}
         initialMinRating={4}
@@ -174,20 +175,20 @@ describe('FilterPanel Browser Tests', () => {
       />
     )
 
-    await expect.element(screen.getByLabelText('Italian')).toBeChecked()
-    await expect.element(screen.getByLabelText('French')).toBeChecked()
-    await expect.element(screen.getByRole('radio', { name: 'Worst Rated' })).toBeChecked()
+    await expect.element(page.getByLabelText('Italian')).toBeChecked()
+    await expect.element(page.getByLabelText('French')).toBeChecked()
+    await expect.element(page.getByRole('radio', { name: 'Worst Rated' })).toBeChecked()
 
-    const selects = screen.getByRole('combobox').all()
+    const selects = page.getByRole('combobox').all()
     await expect.element(selects[0]).toHaveValue('4')
     await expect.element(selects[1]).toHaveValue('New York')
   })
 
   // Tests for minimum rating select
   it('should change minimum rating when selecting a different value', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    const selects = screen.getByRole('combobox').all()
+    const selects = page.getByRole('combobox').all()
     const ratingSelect = selects[0]
     await expect.element(ratingSelect).toHaveValue('0')
 
@@ -196,10 +197,10 @@ describe('FilterPanel Browser Tests', () => {
   })
 
   it('should render all rating options', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
     // Check that the rating select has all expected options
-    const selects = screen.getByRole('combobox').all()
+    const selects = page.getByRole('combobox').all()
     const ratingSelect = selects[0]
 
     // Verify we can select different values (proving options exist)
@@ -213,9 +214,9 @@ describe('FilterPanel Browser Tests', () => {
 
   // Tests for location filter
   it('should change location when selecting a different value', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    const selects = screen.getByRole('combobox').all()
+    const selects = page.getByRole('combobox').all()
     const locationSelect = selects[1]
     await expect.element(locationSelect).toHaveValue('')
 
@@ -224,26 +225,26 @@ describe('FilterPanel Browser Tests', () => {
   })
 
   it('should have All Locations as default option', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    await expect.element(screen.getByText('All Locations')).toBeVisible()
+    await expect.element(page.getByText('All Locations')).toBeVisible()
   })
 
   it('should show Reset button when minRating is set', async () => {
-    const screen = await render(<FilterPanel initialMinRating={3} />)
+    await render(<FilterPanel initialMinRating={3} />)
 
-    await expect.element(screen.getByRole('button', { name: 'Reset Filters' })).toBeVisible()
+    await expect.element(page.getByRole('button', { name: 'Reset Filters' })).toBeVisible()
   })
 
   it('should show Reset button when location is set', async () => {
-    const screen = await render(<FilterPanel initialLocation="Chicago" />)
+    await render(<FilterPanel initialLocation="Chicago" />)
 
-    await expect.element(screen.getByRole('button', { name: 'Reset Filters' })).toBeVisible()
+    await expect.element(page.getByRole('button', { name: 'Reset Filters' })).toBeVisible()
   })
 
   // Tests for reset functionality
   it('should reset all filters when Reset Filters is clicked', async () => {
-    const screen = await render(
+    await render(
       <FilterPanel
         initialCuisines={['Italian', 'French']}
         initialMinRating={4}
@@ -252,14 +253,14 @@ describe('FilterPanel Browser Tests', () => {
       />
     )
 
-    await screen.getByRole('button', { name: 'Reset Filters' }).click()
+    await page.getByRole('button', { name: 'Reset Filters' }).click()
 
     // Check all values are reset
-    await expect.element(screen.getByLabelText('Italian')).not.toBeChecked()
-    await expect.element(screen.getByLabelText('French')).not.toBeChecked()
-    await expect.element(screen.getByRole('radio', { name: 'Best Rated' })).toBeChecked()
+    await expect.element(page.getByLabelText('Italian')).not.toBeChecked()
+    await expect.element(page.getByLabelText('French')).not.toBeChecked()
+    await expect.element(page.getByRole('radio', { name: 'Best Rated' })).toBeChecked()
 
-    const selects = screen.getByRole('combobox').all()
+    const selects = page.getByRole('combobox').all()
     await expect.element(selects[0]).toHaveValue('0')
     await expect.element(selects[1]).toHaveValue('')
   })
@@ -273,43 +274,43 @@ describe('FilterPanel Browser Tests', () => {
       location: 'Chicago'
     }))
 
-    const screen = await render(<FilterPanel initialCuisines={['Italian']} />)
+    await render(<FilterPanel initialCuisines={['Italian']} />)
 
-    await screen.getByRole('button', { name: 'Reset Filters' }).click()
+    await page.getByRole('button', { name: 'Reset Filters' }).click()
 
     const saved = localStorage.getItem('restaurant_filter_preferences')
     expect(saved).toBeNull()
   })
 
   it('should call router.push with empty path when Reset Filters is clicked', async () => {
-    const screen = await render(<FilterPanel initialCuisines={['Italian']} />)
+    await render(<FilterPanel initialCuisines={['Italian']} />)
 
-    await screen.getByRole('button', { name: 'Reset Filters' }).click()
+    await page.getByRole('button', { name: 'Reset Filters' }).click()
 
     expect(mockPush).toHaveBeenCalledWith('/')
   })
 
   // Tests for multiple cuisine selections
   it('should handle multiple cuisine selections', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    await screen.getByLabelText('Italian').click()
-    await screen.getByLabelText('French').click()
-    await screen.getByLabelText('Chinese').click()
+    await page.getByLabelText('Italian').click()
+    await page.getByLabelText('French').click()
+    await page.getByLabelText('Chinese').click()
 
-    await expect.element(screen.getByLabelText('Italian')).toBeChecked()
-    await expect.element(screen.getByLabelText('French')).toBeChecked()
-    await expect.element(screen.getByLabelText('Chinese')).toBeChecked()
+    await expect.element(page.getByLabelText('Italian')).toBeChecked()
+    await expect.element(page.getByLabelText('French')).toBeChecked()
+    await expect.element(page.getByLabelText('Chinese')).toBeChecked()
   })
 
   it('should render all cuisine types', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    await expect.element(screen.getByLabelText('Italian')).toBeVisible()
-    await expect.element(screen.getByLabelText('French')).toBeVisible()
-    await expect.element(screen.getByLabelText('Chinese')).toBeVisible()
-    await expect.element(screen.getByLabelText('Japanese')).toBeVisible()
-    await expect.element(screen.getByLabelText('Mexican')).toBeVisible()
+    await expect.element(page.getByLabelText('Italian')).toBeVisible()
+    await expect.element(page.getByLabelText('French')).toBeVisible()
+    await expect.element(page.getByLabelText('Chinese')).toBeVisible()
+    await expect.element(page.getByLabelText('Japanese')).toBeVisible()
+    await expect.element(page.getByLabelText('Mexican')).toBeVisible()
   })
 
   // Tests for localStorage loading on mount
@@ -321,14 +322,14 @@ describe('FilterPanel Browser Tests', () => {
       location: 'Los Angeles'
     }))
 
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
     // Wait for useEffect to run and update state
-    await expect.element(screen.getByLabelText('Japanese')).toBeChecked()
-    await expect.element(screen.getByLabelText('Mexican')).toBeChecked()
-    await expect.element(screen.getByRole('radio', { name: 'Worst Rated' })).toBeChecked()
+    await expect.element(page.getByLabelText('Japanese')).toBeChecked()
+    await expect.element(page.getByLabelText('Mexican')).toBeChecked()
+    await expect.element(page.getByRole('radio', { name: 'Worst Rated' })).toBeChecked()
 
-    const selects = screen.getByRole('combobox').all()
+    const selects = page.getByRole('combobox').all()
     await expect.element(selects[0]).toHaveValue('3')
     await expect.element(selects[1]).toHaveValue('Los Angeles')
   })
@@ -358,44 +359,44 @@ describe('FilterPanel Browser Tests', () => {
     }))
 
     // When initialCuisines are provided (simulating URL params), localStorage should be ignored
-    const screen = await render(<FilterPanel initialCuisines={['Italian']} />)
+    await render(<FilterPanel initialCuisines={['Italian']} />)
 
     // Should show Italian (from URL param), not Japanese (from localStorage)
-    await expect.element(screen.getByLabelText('Italian')).toBeChecked()
-    await expect.element(screen.getByLabelText('Japanese')).not.toBeChecked()
+    await expect.element(page.getByLabelText('Italian')).toBeChecked()
+    await expect.element(page.getByLabelText('Japanese')).not.toBeChecked()
   })
 
   it('should handle invalid JSON in localStorage gracefully', async () => {
     localStorage.setItem('restaurant_filter_preferences', 'invalid-json')
 
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
     // Should render with defaults, not crash
-    await expect.element(screen.getByRole('heading', { name: 'Sort By' })).toBeVisible()
-    await expect.element(screen.getByRole('radio', { name: 'Best Rated' })).toBeChecked()
+    await expect.element(page.getByRole('heading', { name: 'Sort By' })).toBeVisible()
+    await expect.element(page.getByRole('radio', { name: 'Best Rated' })).toBeChecked()
   })
 
   it('should handle empty localStorage gracefully', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
     // Should render with defaults
-    await expect.element(screen.getByRole('radio', { name: 'Best Rated' })).toBeChecked()
+    await expect.element(page.getByRole('radio', { name: 'Best Rated' })).toBeChecked()
 
-    const selects = screen.getByRole('combobox').all()
+    const selects = page.getByRole('combobox').all()
     await expect.element(selects[0]).toHaveValue('0')
   })
 
   // Tests for Apply Filters with all filter types
   it('should include all filter values in URL when applying', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    const selects = screen.getByRole('combobox').all()
-    await screen.getByLabelText('Italian').click()
+    const selects = page.getByRole('combobox').all()
+    await page.getByLabelText('Italian').click()
     await selects[0].selectOptions('4')
     await selects[1].selectOptions('New York')
-    await screen.getByRole('radio', { name: 'Worst Rated' }).click()
+    await page.getByRole('radio', { name: 'Worst Rated' }).click()
 
-    await screen.getByRole('button', { name: 'Apply Filters' }).click()
+    await page.getByRole('button', { name: 'Apply Filters' }).click()
 
     expect(mockPush).toHaveBeenCalled()
     const calledUrl = mockPush.mock.calls[mockPush.mock.calls.length - 1][0]
@@ -406,16 +407,16 @@ describe('FilterPanel Browser Tests', () => {
   })
 
   it('should save all filter values to localStorage when applying', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    const selects = screen.getByRole('combobox').all()
-    await screen.getByLabelText('Italian').click()
-    await screen.getByLabelText('French').click()
+    const selects = page.getByRole('combobox').all()
+    await page.getByLabelText('Italian').click()
+    await page.getByLabelText('French').click()
     await selects[0].selectOptions('3')
     await selects[1].selectOptions('Chicago')
-    await screen.getByRole('radio', { name: 'Worst Rated' }).click()
+    await page.getByRole('radio', { name: 'Worst Rated' }).click()
 
-    await screen.getByRole('button', { name: 'Apply Filters' }).click()
+    await page.getByRole('button', { name: 'Apply Filters' }).click()
 
     const saved = JSON.parse(localStorage.getItem('restaurant_filter_preferences')!)
     expect(saved.cuisines).toEqual(['Italian', 'French'])
@@ -425,9 +426,9 @@ describe('FilterPanel Browser Tests', () => {
   })
 
   it('should navigate to root without params when no filters selected', async () => {
-    const screen = await render(<FilterPanel />)
+    await render(<FilterPanel />)
 
-    await screen.getByRole('button', { name: 'Apply Filters' }).click()
+    await page.getByRole('button', { name: 'Apply Filters' }).click()
 
     expect(mockPush).toHaveBeenCalledWith('/?sort=best')
   })
