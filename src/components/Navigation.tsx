@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { getCurrentUser } from '@/app/actions/auth'
-import { LogoutButton } from '@/components/ui'
+import { LogoutButton } from '@/components/auth/LogoutButton'
 
 export async function Navigation() {
   const user = await getCurrentUser()
