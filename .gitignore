@@ -9,3 +9,6 @@ public/uploads/*
 .claude/
 .env
 tsconfig.tsbuildinfo
+
+# Test screenshots (Playwright failure screenshots)
+**/__screenshots__/
