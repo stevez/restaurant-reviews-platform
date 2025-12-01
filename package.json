@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
+    "test:unit": "vitest --project unit --run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:browser": "vitest --project browser --run",

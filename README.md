@@ -3,7 +3,6 @@
 > A production-ready, full-stack restaurant review application built with Next.js 14, TypeScript, Prisma, and PostgreSQL.
 
 [![CI](https://github.com/stevez/restaurant-reviews-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/stevez/restaurant-reviews-platform/actions/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-313%20passing-success)](package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -26,7 +25,7 @@ This application is a modern restaurant review platform that allows users to dis
 - 🔐 Secure JWT authentication with role-based access control
 - 🎨 Fully responsive design (mobile, tablet, desktop)
 - 📊 Comprehensive filtering and sorting with persistence
-- 🧪 313 passing tests with Jest and React Testing Library
+- 🧪 Comprehensive tests with Vitest (unit tests + browser mode)
 - 🚀 Built with Next.js 14 App Router and Server Actions
 - 💾 PostgreSQL database with Prisma ORM
 - ✅ Full TypeScript coverage with Zod validation
@@ -73,7 +72,7 @@ This application is a modern restaurant review platform that allows users to dis
 - **ORM:** Prisma
 - **Authentication:** JWT with bcryptjs
 - **Form Validation:** React Hook Form + Zod
-- **Testing:** Jest, React Testing Library
+- **Testing:** Vitest, React Testing Library, Playwright (browser mode)
 
 ## Prerequisites
 
@@ -150,9 +149,12 @@ After seeding, you can log in with these test accounts:
 
 ### Testing
 
-- `npm test` - Run all tests
+- `npm test` - Run all tests (unit + browser)
+- `npm run test:unit` - Run unit tests only
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Generate coverage report
+- `npm run test:browser` - Run browser tests (headless)
+- `npm run test:browser:headed` - Run browser tests with visual UI
 
 ### Database
 
@@ -268,22 +270,53 @@ The data persists in a Docker volume, so you can restart with `npm run db:start`
 
 ## Testing
 
-This project has comprehensive test coverage with **313 passing tests**.
+This project uses **[Vitest](https://vitest.dev/)** for testing with two test modes:
+
+### Unit Tests (jsdom)
+Fast unit tests running in jsdom environment for server actions, utilities, and components.
 
 ```bash
-# Run all tests
-npm test
+# Run unit tests
+npm run test:unit
 
 # Run tests in watch mode
 npm run test:watch
-
-# Generate coverage report
-npm run test:coverage
 ```
 
+### Browser Mode Tests (Playwright)
+Real browser tests using Vitest browser mode with Playwright for component testing with actual browser APIs.
+
+```bash
+# Run browser tests (headless)
+npm run test:browser
+
+# Run browser tests with visual UI (headed mode)
+npm run test:browser:headed
+```
+
+Screenshots are captured on test failures and saved to `__screenshots__/` folders next to test files.
+
+### Coverage
+Coverage is generated using v8 provider. Vitest automatically merges coverage from both unit and browser tests into a single report.
+
+```bash
+# Generate combined coverage report (unit + browser)
+npm run test:coverage
+
+# Generate coverage for unit tests only
+npm run test:unit
+
+# Generate coverage for browser tests only
+npm run test:browser
+```
+
+**Output:**
+- Coverage reports: `coverage/` (HTML report at `coverage/index.html`)
+
 **Test Coverage:**
+- ✅ v8 coverage provider
 - ✅ Unit tests for all server actions
-- ✅ Integration tests for components
+- ✅ Browser mode tests for interactive components
 - ✅ Form validation tests
 - ✅ Authentication and authorization tests
 - ✅ Database operation tests
@@ -382,7 +415,7 @@ npm run db:setup
 
 ### Code Quality
 - 📘 100% TypeScript coverage
-- 🧪 313 comprehensive tests
+- 🧪 Comprehensive test suite (unit + browser mode)
 - 📏 ESLint + Prettier configuration
 - 🏗️ Clean architecture with separation of concerns
 - 📝 Inline documentation and comments
