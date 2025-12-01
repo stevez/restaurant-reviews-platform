@@ -1,27 +1,26 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deleteRestaurant } from '@/app/actions/restaurants'
 import { Button, ErrorMessage } from '@/components/ui'
+import { useAsyncAction } from '@/hooks/useAsyncAction';
 
 export function DeleteRestaurantButton({ restaurantId }: { restaurantId: string }) {
   const router = useRouter()
-  const [isPending, startTransition] = useTransition()
   const [showConfirm, setShowConfirm] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { error, isPending, execute } = useAsyncAction(deleteRestaurant)
 
   const handleDelete = () => {
-    setError(null)
-    startTransition(async () => {
-      const result = await deleteRestaurant(restaurantId)
-      if (result.success) {
-        router.refresh()
-      } else {
-        setError(result.error)
+    execute({
+      onSuccess: () => {
+        router.refresh();
+        setShowConfirm(false)
+      },
+      onError: () => {
+        setShowConfirm(false);
       }
-      setShowConfirm(false)
-    })
+    })(restaurantId)
   }
 
   if (showConfirm) {

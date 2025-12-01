@@ -10,6 +10,7 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     pool: 'forks',
     coverage: {
+      enabled: true,
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
