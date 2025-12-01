@@ -1,5 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach, beforeAll, afterAll } from 'vitest'
+import React from 'react'
+import { render, screen, fireEvent, cleanup } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest'
 import GlobalError from '../global-error'
 
 // Suppress console.error for expected DOM nesting warning
@@ -28,17 +29,21 @@ describe('Global Error Page', () => {
     vi.clearAllMocks()
   })
 
+  afterEach(() => {
+    cleanup()
+  })
+
   it('should render global error page', () => {
     render(<GlobalError error={mockError} reset={mockReset} />)
 
-    expect(screen.getByText('Application Error')).toBeInTheDocument()
-    expect(screen.getByText('A critical error occurred. Please refresh the page.')).toBeInTheDocument()
+    expect(screen.getByText('Application Error')).toBeDefined()
+    expect(screen.getByText('A critical error occurred. Please refresh the page.')).toBeDefined()
   })
 
   it('should call reset when "Refresh" is clicked', () => {
     render(<GlobalError error={mockError} reset={mockReset} />)
 
-    const refreshButton = screen.getByText('Refresh')
+    const refreshButton = screen.getByRole('button', { name: 'Refresh' })
     fireEvent.click(refreshButton)
 
     expect(mockReset).toHaveBeenCalledTimes(1)
@@ -47,7 +52,7 @@ describe('Global Error Page', () => {
   it('should render with html and body tags', () => {
     const { container } = render(<GlobalError error={mockError} reset={mockReset} />)
 
-    expect(container.querySelector('html')).toBeInTheDocument()
-    expect(container.querySelector('body')).toBeInTheDocument()
+    expect(container.querySelector('html')).not.toBeNull()
+    expect(container.querySelector('body')).not.toBeNull()
   })
 })
