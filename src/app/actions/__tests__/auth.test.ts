@@ -1,20 +1,30 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll, Mock } from 'vitest'
 import { loginAction, registerAction, logoutAction, getCurrentUser } from '../auth'
-import { prisma } from '@/lib/db'
 import bcryptjs from 'bcryptjs'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { setTokenCookie } from '@/lib/auth'
 
-// Mock dependencies
+// Use vi.hoisted to create the mock object before vi.mock runs
+const { mockUser } = vi.hoisted(() => ({
+  mockUser: {
+    findUnique: vi.fn(),
+    create: vi.fn(),
+  },
+}));
+
+// Mock external dependencies
 vi.mock('@/lib/db', () => ({
+  getPrisma: () => ({
+    user: mockUser,
+  }),
   prisma: {
-    user: {
-      findUnique: vi.fn(),
-      create: vi.fn()
-    }
-  }
-}))
+    user: mockUser,
+  },
+}));
+
+// Alias for backwards compatibility with test code
+const mockPrisma = { user: mockUser };
 
 vi.mock('bcryptjs', () => ({
   default: {
@@ -91,7 +101,7 @@ describe('Auth Actions', () => {
         role: 'REVIEWER'
       };
 
-      (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
+      (mockPrisma.user.findUnique as Mock).mockResolvedValue(mockUser);
       (bcryptjs.compare as Mock).mockResolvedValue(true)
 
       const result = await loginAction('test@example.com', 'Password123')
@@ -104,7 +114,7 @@ describe('Auth Actions', () => {
     })
 
     it('should return error for non-existent user', async () => {
-      (prisma.user.findUnique as Mock).mockResolvedValue(null)
+      (mockPrisma.user.findUnique as Mock).mockResolvedValue(null)
 
       const result = await loginAction('test@example.com', 'wrong')
 
@@ -123,7 +133,7 @@ describe('Auth Actions', () => {
         role: 'REVIEWER'
       };
 
-      (prisma.user.findUnique as Mock).mockResolvedValue(mockUser);
+      (mockPrisma.user.findUnique as Mock).mockResolvedValue(mockUser);
       (bcryptjs.compare as Mock).mockResolvedValue(false)
 
       const result = await loginAction('test@example.com', 'wrong')
@@ -145,7 +155,7 @@ describe('Auth Actions', () => {
     })
 
     it('should return "Internal server error" for other errors', async () => {
-      (prisma.user.findUnique as Mock).mockRejectedValue(new Error('DB error'));
+      (mockPrisma.user.findUnique as Mock).mockRejectedValue(new Error('DB error'));
       const result = await loginAction('test@example.com', 'Password123');
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -156,9 +166,9 @@ describe('Auth Actions', () => {
 
   describe('registerAction', () => {
     it('should register user successfully', async () => {
-      (prisma.user.findUnique as Mock).mockResolvedValue(null);
+      (mockPrisma.user.findUnique as Mock).mockResolvedValue(null);
       (bcryptjs.hash as Mock).mockResolvedValue('hashed-password');
-      (prisma.user.create as Mock).mockResolvedValue({
+      (mockPrisma.user.create as Mock).mockResolvedValue({
         id: '1',
         email: 'new@example.com',
         name: 'New User',
@@ -175,7 +185,7 @@ describe('Auth Actions', () => {
     })
 
     it('should return error for existing email', async () => {
-      (prisma.user.findUnique as Mock).mockResolvedValue({ id: '1', email: 'existing@example.com' })
+      (mockPrisma.user.findUnique as Mock).mockResolvedValue({ id: '1', email: 'existing@example.com' })
 
       const result = await registerAction('existing@example.com', 'Password123', 'User', 'REVIEWER')
 
@@ -196,7 +206,7 @@ describe('Auth Actions', () => {
     })
 
     it('should return "Internal server error" for other errors', async () => {
-      (prisma.user.findUnique as Mock).mockRejectedValue(new Error('DB error'));
+      (mockPrisma.user.findUnique as Mock).mockRejectedValue(new Error('DB error'));
       const result = await registerAction('test@example.com', 'Password123', 'Test User', 'REVIEWER');
       expect(result.success).toBe(false);
       if (!result.success) {
@@ -217,7 +227,7 @@ describe('Auth Actions', () => {
   describe('getCurrentUser', () => {
     it('should return user for valid token', async () => {
       mockCookies.get.mockReturnValue({ value: 'valid-token' });
-      (prisma.user.findUnique as Mock).mockResolvedValue({
+      (mockPrisma.user.findUnique as Mock).mockResolvedValue({
         id: '1',
         email: 'test@example.com',
         name: 'Test User',
@@ -254,7 +264,7 @@ describe('Auth Actions', () => {
 
     it('should return null if user not found in DB even with valid token', async () => {
       mockCookies.get.mockReturnValue({ value: 'valid-token' });
-      (prisma.user.findUnique as Mock).mockResolvedValue(null);
+      (mockPrisma.user.findUnique as Mock).mockResolvedValue(null);
       const user = await getCurrentUser();
       expect(user).toBeNull();
     });

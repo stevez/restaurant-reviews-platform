@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { prisma } from '@/lib/db'
+import { getPrisma } from '@/lib/db'
 import { getCurrentUser } from './auth'
 import { Review } from '@prisma/client'
 import { reviewSchema } from '@/lib/validators'
@@ -23,6 +23,8 @@ export async function createReview(
   if (!user || user.role !== 'REVIEWER') {
     return { success: false, error: 'Unauthorized' }
   }
+
+  const prisma = getPrisma()
 
   // Check if user already reviewed this restaurant
   const existingReview = await prisma.review.findUnique({
@@ -73,6 +75,7 @@ export async function updateReview(
     return { success: false, error: 'Unauthorized' }
   }
 
+  const prisma = getPrisma()
   const review = await prisma.review.findUnique({
     where: { id: reviewId }
   })
@@ -105,6 +108,7 @@ export async function deleteReview(reviewId: string): Promise<ActionResult> {
     return { success: false, error: 'Unauthorized' }
   }
 
+  const prisma = getPrisma()
   const review = await prisma.review.findUnique({
     where: { id: reviewId }
   })
@@ -128,11 +132,12 @@ export async function deleteReview(reviewId: string): Promise<ActionResult> {
 
 export async function getMyReview(restaurantId: string): Promise<Review | null> {
   const user = await getCurrentUser()
-  
+
   if (!user) {
     return null
   }
 
+  const prisma = getPrisma()
   return await prisma.review.findUnique({
     where: {
       restaurantId_userId: {

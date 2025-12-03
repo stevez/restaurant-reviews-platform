@@ -3,6 +3,8 @@ import { FilterPanel } from '@/components/filters/FilterPanel';
 import { getRestaurants } from '@/app/actions/restaurants';
 import { type CuisineType, type SortOrder } from '@/lib/constants';
 
+export const dynamic = 'force-dynamic';
+
 interface HomePageProps {
   searchParams: {
     cuisine?: string;

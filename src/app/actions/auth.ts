@@ -2,7 +2,7 @@
 
 import { cookies } from 'next/headers'
 import bcryptjs from 'bcryptjs'
-import { prisma } from '@/lib/db'
+import { getPrisma } from '@/lib/db'
 import { loginSchema, registerSchema } from '@/lib/validators'
 import { generateToken, verifyToken, setTokenCookie } from '@/lib/auth'
 import { redirect } from 'next/navigation'
@@ -25,6 +25,7 @@ export async function loginAction(
   }
 
   try {
+    const prisma = getPrisma()
     const user = await prisma.user.findUnique({
       where: { email: validated.data.email }
     })
@@ -78,6 +79,7 @@ export async function registerAction(
   }
 
   try {
+    const prisma = getPrisma()
     const existingUser = await prisma.user.findUnique({
       where: { email: validated.data.email }
     })
@@ -139,6 +141,7 @@ export async function getCurrentUser(): Promise<UserSession | null> {
       return null
     }
     
+    const prisma = getPrisma()
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
