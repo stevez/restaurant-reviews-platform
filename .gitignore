@@ -12,3 +12,10 @@ tsconfig.tsbuildinfo
 
 # Test screenshots (Playwright failure screenshots)
 **/__screenshots__/
+
+# E2E test artifacts
+e2e/playwright-report/
+e2e/test-results/
+e2e/.container-id
+playwright-report/
+test-results/

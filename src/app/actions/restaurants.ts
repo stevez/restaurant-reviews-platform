@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { writeFile, unlink } from 'fs/promises'
 import path from 'path'
-import { prisma } from '@/lib/db'
+import { getPrisma } from '@/lib/db'
 import { restaurantSchema, type RestaurantInput, type SavedPreferences } from '@/lib/validators'
 import { type ActionResult } from '@/types/actions'
 import { getCurrentUser } from './auth'
@@ -30,6 +30,7 @@ type RestaurantDetail = Omit<Restaurant, 'cuisine'> & {
 export async function getRestaurants(
   filters?: SavedPreferences
 ): Promise<RestaurantWithRating[]> {
+  const prisma = getPrisma()
   const restaurants = await prisma.restaurant.findMany({
     where: {
       ...(filters?.cuisines && filters.cuisines.length > 0 && {
@@ -82,6 +83,7 @@ export async function getRestaurants(
 }
 
 export async function getRestaurant(id: string): Promise<RestaurantDetail | null> {
+  const prisma = getPrisma()
   return await prisma.restaurant.findUnique({
     where: { id },
     include: {
@@ -123,6 +125,7 @@ export async function createRestaurant(data: RestaurantInput): Promise<ActionRes
   }
 
   try {
+    const prisma = getPrisma()
     const restaurant = await prisma.restaurant.create({
       data: {
         title: validation.data.title,
@@ -149,6 +152,7 @@ export async function updateRestaurant(id: string, data: RestaurantInput): Promi
     return { success: false, error: 'Unauthorized' }
   }
 
+  const prisma = getPrisma()
   const restaurant = await prisma.restaurant.findUnique({
     where: { id }
   })
@@ -202,6 +206,7 @@ export async function deleteRestaurant(id: string): Promise<ActionResult> {
     return { success: false, error: 'Unauthorized' }
   }
 
+  const prisma = getPrisma()
   const restaurant = await prisma.restaurant.findUnique({
     where: { id }
   })
@@ -235,6 +240,7 @@ export async function getMyRestaurants(): Promise<RestaurantWithReviews[]> {
     return []
   }
 
+  const prisma = getPrisma()
   return await prisma.restaurant.findMany({
     where: {
       ownerId: user.id

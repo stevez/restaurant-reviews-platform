@@ -1,20 +1,30 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll, Mock, test } from 'vitest'
 import { createReview, updateReview, deleteReview, getMyReview } from '../reviews';
-import { prisma } from '@/lib/db';
 import { getCurrentUser } from '../auth';
 import { revalidatePath } from 'next/cache';
 
-// Mock external dependencies
-vi.mock('@/lib/db', () => ({
-  prisma: {
-    review: {
-      create: vi.fn(),
-      findUnique: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
+// Use vi.hoisted to create the mock object before vi.mock runs
+const { mockReview } = vi.hoisted(() => ({
+  mockReview: {
+    create: vi.fn(),
+    findUnique: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
   },
 }));
+
+// Mock external dependencies
+vi.mock('@/lib/db', () => ({
+  getPrisma: () => ({
+    review: mockReview,
+  }),
+  prisma: {
+    review: mockReview,
+  },
+}));
+
+// Alias for backwards compatibility with test code
+const mockPrisma = { review: mockReview };
 
 vi.mock('../auth', () => ({
   getCurrentUser: vi.fn(),
@@ -56,12 +66,12 @@ describe('Review Actions', () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1', rating: 5, comment: 'Great!' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as Mock).mockResolvedValue(null);
-      (prisma.review.create as Mock).mockResolvedValue(mockReview);
+      (mockPrisma.review.findUnique as Mock).mockResolvedValue(null);
+      (mockPrisma.review.create as Mock).mockResolvedValue(mockReview);
 
       const result = await createReview('rest1', 5, 'Great!');
 
-      expect(prisma.review.create).toHaveBeenCalledWith({
+      expect(mockPrisma.review.create).toHaveBeenCalledWith({
         data: {
           rating: 5,
           comment: 'Great!',
@@ -80,7 +90,7 @@ describe('Review Actions', () => {
       const result = await createReview('rest1', 5, 'Great!');
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.review.create).not.toHaveBeenCalled();
+      expect(mockPrisma.review.create).not.toHaveBeenCalled();
     });
 
     test('should return unauthorized if no user is logged in', async () => {
@@ -89,26 +99,26 @@ describe('Review Actions', () => {
       const result = await createReview('rest1', 5, 'Great!');
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.review.create).not.toHaveBeenCalled();
+      expect(mockPrisma.review.create).not.toHaveBeenCalled();
     });
 
     test('should return error if user has already reviewed the restaurant', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const existingReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1', rating: 4 };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as Mock).mockResolvedValue(existingReview);
+      (mockPrisma.review.findUnique as Mock).mockResolvedValue(existingReview);
 
       const result = await createReview('rest1', 5, 'Great!');
 
       expect(result).toEqual({ success: false, error: 'You have already reviewed this restaurant' });
-      expect(prisma.review.create).not.toHaveBeenCalled();
+      expect(mockPrisma.review.create).not.toHaveBeenCalled();
     });
 
     test('should handle database errors during creation', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as Mock).mockResolvedValue(null);
-      (prisma.review.create as Mock).mockRejectedValue(new Error('Database error'));
+      (mockPrisma.review.findUnique as Mock).mockResolvedValue(null);
+      (mockPrisma.review.create as Mock).mockRejectedValue(new Error('Database error'));
 
       const result = await createReview('rest1', 5, 'Great!');
 
@@ -122,12 +132,12 @@ describe('Review Actions', () => {
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1', rating: 3, comment: 'Old comment' };
       const updatedReview = { ...mockReview, rating: 5, comment: 'New comment' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
-      (prisma.review.update as Mock).mockResolvedValue(updatedReview);
+      (mockPrisma.review.findUnique as Mock).mockResolvedValue(mockReview);
+      (mockPrisma.review.update as Mock).mockResolvedValue(updatedReview);
 
       const result = await updateReview('review1', 5, 'New comment');
 
-      expect(prisma.review.update).toHaveBeenCalledWith({
+      expect(mockPrisma.review.update).toHaveBeenCalledWith({
         where: { id: 'review1' },
         data: { rating: 5, comment: 'New comment' },
       });
@@ -139,12 +149,12 @@ describe('Review Actions', () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'another-user', rating: 3 };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
+      (mockPrisma.review.findUnique as Mock).mockResolvedValue(mockReview);
 
       const result = await updateReview('review1', 5, 'New comment');
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.review.update).not.toHaveBeenCalled();
+      expect(mockPrisma.review.update).not.toHaveBeenCalled();
     });
 
     test('should return unauthorized if no user is logged in', async () => {
@@ -153,15 +163,15 @@ describe('Review Actions', () => {
       const result = await updateReview('review1', 5, 'New comment');
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.review.update).not.toHaveBeenCalled();
+      expect(mockPrisma.review.update).not.toHaveBeenCalled();
     });
 
     test('should handle database errors during update', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1', rating: 3 };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
-      (prisma.review.update as Mock).mockRejectedValue(new Error('Database error'));
+      (mockPrisma.review.findUnique as Mock).mockResolvedValue(mockReview);
+      (mockPrisma.review.update as Mock).mockRejectedValue(new Error('Database error'));
 
       const result = await updateReview('review1', 5, 'New comment');
 
@@ -174,12 +184,12 @@ describe('Review Actions', () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
-      (prisma.review.delete as Mock).mockResolvedValue(mockReview);
+      (mockPrisma.review.findUnique as Mock).mockResolvedValue(mockReview);
+      (mockPrisma.review.delete as Mock).mockResolvedValue(mockReview);
 
       const result = await deleteReview('review1');
 
-      expect(prisma.review.delete).toHaveBeenCalledWith({ where: { id: 'review1' } });
+      expect(mockPrisma.review.delete).toHaveBeenCalledWith({ where: { id: 'review1' } });
       expect(revalidatePath).toHaveBeenCalledWith('/reviewer/restaurants/rest1');
       expect(result).toEqual({ success: true });
     });
@@ -188,12 +198,12 @@ describe('Review Actions', () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'another-user' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
+      (mockPrisma.review.findUnique as Mock).mockResolvedValue(mockReview);
 
       const result = await deleteReview('review1');
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.review.delete).not.toHaveBeenCalled();
+      expect(mockPrisma.review.delete).not.toHaveBeenCalled();
     });
 
     test('should return unauthorized if no user is logged in', async () => {
@@ -202,15 +212,15 @@ describe('Review Actions', () => {
       const result = await deleteReview('review1');
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.review.delete).not.toHaveBeenCalled();
+      expect(mockPrisma.review.delete).not.toHaveBeenCalled();
     });
 
     test('should handle database errors during deletion', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
-      (prisma.review.delete as Mock).mockRejectedValue(new Error('Database error'));
+      (mockPrisma.review.findUnique as Mock).mockResolvedValue(mockReview);
+      (mockPrisma.review.delete as Mock).mockRejectedValue(new Error('Database error'));
 
       const result = await deleteReview('review1');
 
@@ -223,12 +233,12 @@ describe('Review Actions', () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       const mockReview = { id: 'review1', restaurantId: 'rest1', userId: 'user1', rating: 5 };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as Mock).mockResolvedValue(mockReview);
+      (mockPrisma.review.findUnique as Mock).mockResolvedValue(mockReview);
 
       const result = await getMyReview('rest1');
 
       expect(result).toEqual(mockReview);
-      expect(prisma.review.findUnique).toHaveBeenCalledWith({
+      expect(mockPrisma.review.findUnique).toHaveBeenCalledWith({
         where: {
           restaurantId_userId: {
             restaurantId: 'rest1',
@@ -249,7 +259,7 @@ describe('Review Actions', () => {
     test('should return null if no review is found', async () => {
       const mockUser = { id: 'user1', role: 'REVIEWER' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.review.findUnique as Mock).mockResolvedValue(null);
+      (mockPrisma.review.findUnique as Mock).mockResolvedValue(null);
 
       const result = await getMyReview('rest1');
 

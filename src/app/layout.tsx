@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Navigation } from '@/components/Navigation'
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Restaurant Reviews',
   description: 'Browse and review restaurants with our community',

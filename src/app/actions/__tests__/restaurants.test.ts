@@ -1,22 +1,32 @@
 import { describe, it, expect, vi, beforeEach, beforeAll, afterAll, Mock, test } from 'vitest'
 import { getRestaurants, getRestaurant, createRestaurant, updateRestaurant, deleteRestaurant, getMyRestaurants } from '../restaurants';
-import { prisma } from '@/lib/db';
 import { getCurrentUser } from '../auth';
 import { revalidatePath } from 'next/cache';
 import { CuisineType } from '@/lib/constants';
 
-// Mock external dependencies
-vi.mock('@/lib/db', () => ({
-  prisma: {
-    restaurant: {
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
+// Use vi.hoisted to create the mock object before vi.mock runs
+const { mockRestaurant } = vi.hoisted(() => ({
+  mockRestaurant: {
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
   },
 }));
+
+// Mock external dependencies
+vi.mock('@/lib/db', () => ({
+  getPrisma: () => ({
+    restaurant: mockRestaurant,
+  }),
+  prisma: {
+    restaurant: mockRestaurant,
+  },
+}));
+
+// Alias for backwards compatibility with test code
+const mockPrisma = { restaurant: mockRestaurant };
 
 vi.mock('../auth', () => ({
   getCurrentUser: vi.fn(),
@@ -69,7 +79,7 @@ describe('Restaurant Actions', () => {
           reviews: [],
         },
       ];
-      (prisma.restaurant.findMany as Mock).mockResolvedValue(mockRestaurants);
+      (mockPrisma.restaurant.findMany as Mock).mockResolvedValue(mockRestaurants);
 
       const result = await getRestaurants();
 
@@ -94,7 +104,7 @@ describe('Restaurant Actions', () => {
           reviews: [{ rating: 4 }],
         },
       ];
-      (prisma.restaurant.findMany as Mock).mockImplementation((options) => {
+      (mockPrisma.restaurant.findMany as Mock).mockImplementation((options) => {
         let filtered = mockRestaurants;
         if (options?.where?.cuisine?.hasSome?.length > 0) {
           const cuisinesToFilter = options.where.cuisine.hasSome;
@@ -129,7 +139,7 @@ describe('Restaurant Actions', () => {
         },
       ];
       // Mock the internal calculation of averageRating by providing it directly
-      (prisma.restaurant.findMany as Mock).mockImplementation(() => {
+      (mockPrisma.restaurant.findMany as Mock).mockImplementation(() => {
         return Promise.resolve(mockRestaurants.map(r => ({
           ...r,
           reviews: r.reviews.map(rev => ({ rating: rev.rating })) // Ensure reviews structure matches
@@ -157,7 +167,7 @@ describe('Restaurant Actions', () => {
           reviews: [{ rating: 4 }], averageRating: 4
         },
       ];
-      (prisma.restaurant.findMany as Mock).mockImplementation(() => {
+      (mockPrisma.restaurant.findMany as Mock).mockImplementation(() => {
         return Promise.resolve(mockRestaurants.map(r => ({
           ...r,
           reviews: r.reviews.map(rev => ({ rating: rev.rating }))
@@ -186,7 +196,7 @@ describe('Restaurant Actions', () => {
           reviews: [{ rating: 4 }], averageRating: 4
         },
       ];
-      (prisma.restaurant.findMany as Mock).mockImplementation(() => {
+      (mockPrisma.restaurant.findMany as Mock).mockImplementation(() => {
         return Promise.resolve(mockRestaurants.map(r => ({
           ...r,
           reviews: r.reviews.map(rev => ({ rating: rev.rating }))
@@ -208,12 +218,12 @@ describe('Restaurant Actions', () => {
         owner: { id: 'owner1', name: 'Owner 1' },
         reviews: [],
       };
-      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
+      (mockPrisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
 
       const result = await getRestaurant('1');
 
       expect(result).toEqual(mockRestaurant);
-      expect(prisma.restaurant.findUnique).toHaveBeenCalledWith({
+      expect(mockPrisma.restaurant.findUnique).toHaveBeenCalledWith({
         where: { id: '1' },
         include: {
           owner: {
@@ -240,7 +250,7 @@ describe('Restaurant Actions', () => {
     });
 
     test('should return null if restaurant not found', async () => {
-      (prisma.restaurant.findUnique as Mock).mockResolvedValue(null);
+      (mockPrisma.restaurant.findUnique as Mock).mockResolvedValue(null);
 
       const result = await getRestaurant('non-existent-id');
 
@@ -252,7 +262,7 @@ describe('Restaurant Actions', () => {
     test('should create a new restaurant if user is owner', async () => {
       const mockRestaurant = { id: 'new-restaurant-id', title: 'New Restaurant' };
       (getCurrentUser as Mock).mockResolvedValue({ id: 'owner1', role: 'OWNER' });
-      (prisma.restaurant.create as Mock).mockResolvedValue(mockRestaurant);
+      (mockPrisma.restaurant.create as Mock).mockResolvedValue(mockRestaurant);
 
       const data = {
         title: 'New Restaurant',
@@ -264,7 +274,7 @@ describe('Restaurant Actions', () => {
 
       const result = await createRestaurant(data);
 
-      expect(prisma.restaurant.create).toHaveBeenCalledWith({
+      expect(mockPrisma.restaurant.create).toHaveBeenCalledWith({
         data: {
           title: 'New Restaurant',
           description: 'Delicious food',
@@ -291,7 +301,7 @@ describe('Restaurant Actions', () => {
       const result = await createRestaurant(data);
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.restaurant.create).not.toHaveBeenCalled();
+      expect(mockPrisma.restaurant.create).not.toHaveBeenCalled();
     });
 
     test('should return unauthorized if no user is logged in', async () => {
@@ -307,12 +317,12 @@ describe('Restaurant Actions', () => {
       const result = await createRestaurant(data);
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.restaurant.create).not.toHaveBeenCalled();
+      expect(mockPrisma.restaurant.create).not.toHaveBeenCalled();
     });
 
     test('should handle database errors during creation', async () => {
       (getCurrentUser as Mock).mockResolvedValue({ id: 'owner1', role: 'OWNER' });
-      (prisma.restaurant.create as Mock).mockRejectedValue(new Error('Database error'));
+      (mockPrisma.restaurant.create as Mock).mockRejectedValue(new Error('Database error'));
 
       const data = {
         title: 'New Restaurant',
@@ -333,8 +343,8 @@ describe('Restaurant Actions', () => {
       const mockRestaurant = { id: '1', ownerId: 'owner1', title: 'Old Title', imageUrl: '/restaurant1.jpg' };
       const updatedRestaurant = { ...mockRestaurant, title: 'New Title' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
-      (prisma.restaurant.update as Mock).mockResolvedValue(updatedRestaurant);
+      (mockPrisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
+      (mockPrisma.restaurant.update as Mock).mockResolvedValue(updatedRestaurant);
 
       const data = {
         title: 'New Title',
@@ -345,7 +355,7 @@ describe('Restaurant Actions', () => {
 
       const result = await updateRestaurant('1', data);
 
-      expect(prisma.restaurant.update).toHaveBeenCalledWith({
+      expect(mockPrisma.restaurant.update).toHaveBeenCalledWith({
         where: { id: '1' },
         data: {
           title: 'New Title',
@@ -364,7 +374,7 @@ describe('Restaurant Actions', () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'another-owner', title: 'Old Title' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
+      (mockPrisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
 
       const data = {
         title: 'New Title',
@@ -376,7 +386,7 @@ describe('Restaurant Actions', () => {
       const result = await updateRestaurant('1', data);
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.restaurant.update).not.toHaveBeenCalled();
+      expect(mockPrisma.restaurant.update).not.toHaveBeenCalled();
     });
 
     test('should return unauthorized if no user is logged in', async () => {
@@ -392,15 +402,15 @@ describe('Restaurant Actions', () => {
       const result = await updateRestaurant('1', data);
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.restaurant.update).not.toHaveBeenCalled();
+      expect(mockPrisma.restaurant.update).not.toHaveBeenCalled();
     });
 
     test('should handle database errors during update', async () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'owner1', title: 'Old Title', imageUrl: '/restaurant1.jpg' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
-      (prisma.restaurant.update as Mock).mockRejectedValue(new Error('Database error'));
+      (mockPrisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
+      (mockPrisma.restaurant.update as Mock).mockRejectedValue(new Error('Database error'));
 
       const data = {
         title: 'New Title',
@@ -420,12 +430,12 @@ describe('Restaurant Actions', () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'owner1' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
-      (prisma.restaurant.delete as Mock).mockResolvedValue(mockRestaurant);
+      (mockPrisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
+      (mockPrisma.restaurant.delete as Mock).mockResolvedValue(mockRestaurant);
 
       const result = await deleteRestaurant('1');
 
-      expect(prisma.restaurant.delete).toHaveBeenCalledWith({ where: { id: '1' } });
+      expect(mockPrisma.restaurant.delete).toHaveBeenCalledWith({ where: { id: '1' } });
       expect(revalidatePath).toHaveBeenCalledWith('/');
       expect(revalidatePath).toHaveBeenCalledWith('/owner/my-restaurants');
       expect(result).toEqual({ success: true });
@@ -435,12 +445,12 @@ describe('Restaurant Actions', () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'another-owner' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
+      (mockPrisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
 
       const result = await deleteRestaurant('1');
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.restaurant.delete).not.toHaveBeenCalled();
+      expect(mockPrisma.restaurant.delete).not.toHaveBeenCalled();
     });
 
     test('should return unauthorized if no user is logged in', async () => {
@@ -449,15 +459,15 @@ describe('Restaurant Actions', () => {
       const result = await deleteRestaurant('1');
 
       expect(result).toEqual({ success: false, error: 'Unauthorized' });
-      expect(prisma.restaurant.delete).not.toHaveBeenCalled();
+      expect(mockPrisma.restaurant.delete).not.toHaveBeenCalled();
     });
 
     test('should handle database errors during deletion', async () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurant = { id: '1', ownerId: 'owner1' };
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
-      (prisma.restaurant.delete as Mock).mockRejectedValue(new Error('Database error'));
+      (mockPrisma.restaurant.findUnique as Mock).mockResolvedValue(mockRestaurant);
+      (mockPrisma.restaurant.delete as Mock).mockRejectedValue(new Error('Database error'));
 
       const result = await deleteRestaurant('1');
 
@@ -470,12 +480,12 @@ describe('Restaurant Actions', () => {
       const mockUser = { id: 'owner1', role: 'OWNER' };
       const mockRestaurants = [{ id: '1', ownerId: 'owner1', reviews: [] }];
       (getCurrentUser as Mock).mockResolvedValue(mockUser);
-      (prisma.restaurant.findMany as Mock).mockResolvedValue(mockRestaurants);
+      (mockPrisma.restaurant.findMany as Mock).mockResolvedValue(mockRestaurants);
 
       const result = await getMyRestaurants();
 
       expect(result).toEqual(mockRestaurants);
-      expect(prisma.restaurant.findMany).toHaveBeenCalledWith({
+      expect(mockPrisma.restaurant.findMany).toHaveBeenCalledWith({
         where: { ownerId: 'owner1' },
         include: { reviews: { select: { rating: true } } },
         orderBy: { createdAt: 'desc' },
@@ -489,7 +499,7 @@ describe('Restaurant Actions', () => {
       const result = await getMyRestaurants();
 
       expect(result).toEqual([]);
-      expect(prisma.restaurant.findMany).not.toHaveBeenCalled();
+      expect(mockPrisma.restaurant.findMany).not.toHaveBeenCalled();
     });
 
     test('should return empty array if no user is logged in', async () => {
@@ -498,7 +508,7 @@ describe('Restaurant Actions', () => {
       const result = await getMyRestaurants();
 
       expect(result).toEqual([]);
-      expect(prisma.restaurant.findMany).not.toHaveBeenCalled();
+      expect(mockPrisma.restaurant.findMany).not.toHaveBeenCalled();
     });
   });
 });
