@@ -11,7 +11,7 @@ const __dirname = path.dirname(__filename)
 
 const execAsync = promisify(exec)
 
-const WORKER_COUNT = process.env.CI ? 2 : 4
+const WORKER_COUNT = 4 // Must match workers in playwright.config.ts
 const E2E_DB_PORT = 5434 // Fixed port for E2E testing
 
 async function setupDatabase() {
