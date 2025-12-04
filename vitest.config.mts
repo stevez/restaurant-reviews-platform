@@ -14,6 +14,7 @@ export default defineConfig({
     coverage: {
       enabled: true,
       provider: 'v8',
+      reportsDirectory: './coverage/unit',
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'src/**/__tests__/**',
@@ -22,6 +23,7 @@ export default defineConfig({
         'src/**/*.browser.test.{ts,tsx}',
         'src/types/**',
       ],
+      reporter: ['text', 'json', 'html'],
     },
     projects: [
       {
