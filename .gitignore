@@ -1,6 +1,7 @@
 node_modules/
 .next/
 coverage/
+.v8-coverage/
 .swc/
 
 # Uploaded images (keep directory with .gitkeep)
@@ -19,3 +20,4 @@ e2e/test-results/
 e2e/.container-id
 playwright-report/
 test-results/
+monocart-report/
