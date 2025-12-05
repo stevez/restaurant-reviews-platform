@@ -31,9 +31,7 @@
     "e2e:run": "start-server-and-test start:e2e http-get://localhost:3000 playwright-test",
     "e2e": "npm run e2e:clean && npm run e2e:setup-db && npm run e2e:run && npm run e2e:teardown-db",
     "e2e:headed": "npm run e2e:setup-db && start-server-and-test start:e2e http-get://localhost:3000 \"playwright test --config=e2e/playwright.config.ts --headed\" && npm run e2e:teardown-db",
-    "e2e:ui": "npm run e2e:setup-db && start-server-and-test start:e2e http-get://localhost:3000 \"playwright test --config=e2e/playwright.config.ts --ui\" && npm run e2e:teardown-db",
-    "coverage:merge": "npx ts-node scripts/merge-coverage.ts",
-    "coverage:all": "npm run test:coverage && npm run e2e && npm run coverage:merge"
+    "e2e:ui": "npm run e2e:setup-db && start-server-and-test start:e2e http-get://localhost:3000 \"playwright test --config=e2e/playwright.config.ts --ui\" && npm run e2e:teardown-db"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
