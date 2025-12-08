@@ -26,6 +26,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Build nextcov library
+        run: npm run build -w packages/nextcov
+
       - name: Run TypeScript type checking
         run: npx tsc --noEmit
 
