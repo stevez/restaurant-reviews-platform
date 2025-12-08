@@ -8,6 +8,7 @@
 
 import { existsSync } from 'node:fs'
 import { promises as fs } from 'node:fs'
+import { relative } from 'node:path'
 import libCoverage from 'istanbul-lib-coverage'
 import type { CoverageMap, CoverageMapData, FileCoverageData } from 'istanbul-lib-coverage'
 import type { MergerConfig, MergeOptions, MergeResult, CoverageSummary, CoverageMetric, ReporterType } from './types.js'
@@ -760,7 +761,6 @@ async function generateReports(
  * Get relative path from project root
  */
 function relativePath(projectRoot: string, filePath: string): string {
-  const { relative } = require('path')
   return relative(projectRoot, filePath)
 }
 
