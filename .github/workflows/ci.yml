@@ -76,8 +76,8 @@ jobs:
       - name: Build nextcov library
         run: cd packages/nextcov && npm run build
 
-      - name: Build application
-        run: npm run build
+      - name: Build application for E2E
+        run: npm run build:e2e
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
           JWT_SECRET: test-secret-key-for-ci-only-not-for-production
@@ -88,6 +88,9 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5434/test_0
           DATABASE_URL_BASE: postgresql://test:test@localhost:5434
           JWT_SECRET: test-secret-key-for-ci-only-not-for-production
+
+      - name: Merge coverage reports
+        run: npm run coverage:merge
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
