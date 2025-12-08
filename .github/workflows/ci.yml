@@ -26,52 +26,23 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Build nextcov library
+        run: cd packages/nextcov && npm run build
+
       - name: Run TypeScript type checking
         run: npx tsc --noEmit
 
       - name: Run ESLint
         run: npm run lint
 
-      - name: Run tests
+      - name: Run unit tests
         run: npm test -- --coverage
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
           JWT_SECRET: test-secret-key-for-ci-only-not-for-production
 
-      - name: Build application
-        run: npm run build
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/test
-          JWT_SECRET: test-secret-key-for-ci-only-not-for-production
-
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          fail_ci_if_error: false
-
-  e2e:
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Build application
-        run: npm run build
+      - name: Build application for E2E
+        run: npm run build:e2e
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
           JWT_SECRET: test-secret-key-for-ci-only-not-for-production
@@ -82,6 +53,15 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5434/test_0
           DATABASE_URL_BASE: postgresql://test:test@localhost:5434
           JWT_SECRET: test-secret-key-for-ci-only-not-for-production
+
+      - name: Merge coverage reports
+        run: npm run coverage:merge
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          fail_ci_if_error: false
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4

@@ -1,6 +1,6 @@
 import { test as base, expect } from '@playwright/test'
 import { PrismaClient } from '@prisma/client'
-import { addCoverageReport } from 'monocart-reporter'
+import { collectClientCoverage } from 'nextcov/playwright'
 
 const E2E_DB_PORT = 5434
 
@@ -91,32 +91,10 @@ export const test = base.extend<TestFixtures>({
     await use()
   },
 
-  // Auto-collect v8 coverage for each test (Chromium only)
+  // Auto-collect v8 coverage for each test
   coverage: [
     async ({ page }, use, testInfo) => {
-      const isChromium = testInfo.project.name === 'chromium'
-
-      if (isChromium) {
-        // Start collecting JS and CSS coverage
-        await Promise.all([
-          page.coverage.startJSCoverage({ resetOnNavigation: false }),
-          page.coverage.startCSSCoverage({ resetOnNavigation: false }),
-        ])
-      }
-
-      await use()
-
-      if (isChromium) {
-        // Stop coverage and collect data
-        const [jsCoverage, cssCoverage] = await Promise.all([
-          page.coverage.stopJSCoverage(),
-          page.coverage.stopCSSCoverage(),
-        ])
-        const coverageList = [...jsCoverage, ...cssCoverage]
-
-        // Add coverage to monocart-reporter
-        await addCoverageReport(coverageList, testInfo)
-      }
+      await collectClientCoverage(page, testInfo, use)
     },
     { scope: 'test', auto: true },
   ],

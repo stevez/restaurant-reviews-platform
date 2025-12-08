@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import { connectToCDP, loadNextcovConfig } from 'nextcov'
 
 export default async function globalSetup() {
   // Verify the container ID file exists (indicates setup-db ran successfully)
@@ -11,4 +12,11 @@ export default async function globalSetup() {
   }
 
   console.log('\n✅ E2E database ready')
+
+  // Load config from playwright.config.ts
+  const config = await loadNextcovConfig(path.join(process.cwd(), 'e2e', 'playwright.config.ts'))
+
+  // Connect to server for coverage collection
+  console.log('📊 Setting up server coverage...')
+  await connectToCDP({ port: config.cdpPort })
 }

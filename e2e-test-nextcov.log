@@ -1,0 +1,118 @@
+
+> restaurant-reviews-platform@1.0.0 e2e
+> npm run e2e:clean && npm run e2e:setup-db && npm run e2e:run && npm run e2e:teardown-db
+
+
+> restaurant-reviews-platform@1.0.0 e2e:clean
+> rimraf coverage/e2e
+
+
+> restaurant-reviews-platform@1.0.0 e2e:setup-db
+> npx ts-node e2e/setup-db.ts
+
+
+🐳 Starting PostgreSQL container on port 5434 ...
+(node:231388) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/huiga.DESKTOP-0IUELD6/development/Steve-zhang/e2e/setup-db.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\huiga.DESKTOP-0IUELD6\development\Steve-zhang\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ PostgreSQL container started (4818ms)
+📦 Created 4 databases (5318ms)
+🔄 Running migrations...
+✅ All worker databases ready (9919ms)
+
+✅ Database setup complete. Container ID: 7dc7f937f9b6eef5ed4b32d5b87f641f829d9f29440cfc3fe1ea4a438a22ced8
+
+> restaurant-reviews-platform@1.0.0 e2e:run
+> start-server-and-test start:e2e http-get://localhost:3000 playwright-test
+
+1: starting server using command "npm run start:e2e"
+and when url "[ 'http-get://localhost:3000' ]" is responding with HTTP status code 200
+running tests using command "npm run playwright-test"
+
+
+> restaurant-reviews-platform@1.0.0 start:e2e
+> cross-env E2E_MODE=true DATABASE_URL_BASE=postgresql://test:test@localhost:5434 CDP_PORT=9230 NODE_OPTIONS=--inspect=9230 next start
+
+Debugger listening on ws://127.0.0.1:9230/f0cbcea8-22d6-45b7-83ff-4f1ac60ac322
+For help, see: https://nodejs.org/en/docs/inspector
+ ⚠ You are using a non-standard "NODE_ENV" value in your environment. This creates inconsistencies in the project and is strongly advised against. Read more: https://nextjs.org/docs/messages/non-standard-node-env
+   the --inspect option was detected, the Next.js router server should be inspected at port 9230.
+  ▲ Next.js 14.2.33
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 746ms
+
+> restaurant-reviews-platform@1.0.0 playwright-test
+> playwright test --config=e2e/playwright.config.ts
+
+
+✅ E2E database ready
+📊 Setting up server coverage...
+  Connecting to CDP at port 9230...
+Debugger attached.
+  ✓ Connected to CDP
+  ✓ Started JS coverage collection
+
+Running 12 tests using 4 workers
+
+[1A[2K[1/12] [chromium] › e2e\auth.spec.ts:35:7 › Authentication › should login with existing user
+[1A[2K[2/12] [chromium] › e2e\auth.spec.ts:22:7 › Authentication › should register a new user
+[1A[2K[3/12] [chromium] › e2e\auth.spec.ts:15:7 › Authentication › should show sign in and register links when not authenticated
+[1A[2K[4/12] [chromium] › e2e\auth.spec.ts:58:7 › Authentication › should show error for invalid credentials
+[1A[2K[5/12] [chromium] › e2e\auth.spec.ts:68:7 › Authentication › should logout user
+[1A[2K[6/12] [chromium] › e2e\restaurants.spec.ts:14:7 › Restaurants › should display restaurant list on home page
+[1A[2K[7/12] [chromium] › e2e\restaurants.spec.ts:21:7 › Restaurants › should filter restaurants by location
+[1A[2K[8/12] [chromium] › e2e\restaurants.spec.ts:59:7 › Restaurants › owner should create a restaurant
+[1A[2K[9/12] [chromium] › e2e\restaurants.spec.ts:85:7 › Restaurants › should view restaurant details
+[1A[2K[10/12] [chromium] › e2e\reviews.spec.ts:14:7 › Reviews › reviewer should add a review to a restaurant
+[1A[2K[11/12] [chromium] › e2e\reviews.spec.ts:59:7 › Reviews › should display average rating on restaurant card
+[1A[2K[12/12] [chromium] › e2e\reviews.spec.ts:104:7 › Reviews › user cannot review the same restaurant twice
+
+✅ E2E tests complete
+📊 Collecting server-side coverage...
+Debugger ending on ws://127.0.0.1:9230/f0cbcea8-22d6-45b7-83ff-4f1ac60ac322
+For help, see: https://nodejs.org/en/docs/inspector
+  ✓ Collected 17 server coverage entries
+  ✓ Server coverage saved
+📊 Reading client-side coverage...
+  ✓ Found 157 client-side coverage entries
+📊 Processing coverage with ast-v8-to-istanbul...
+Processing 174 Playwright coverage entries...
+Processing 174 Playwright coverage entries...
+Adding 2 source files for complete coverage...
+
+=============================== Coverage summary ===============================
+Statements   : 46.42% ( 286/616 )
+Branches     : 39.9% ( 172/431 )
+Functions    : 57.81% ( 74/128 )
+Lines        : 46.77% ( 276/590 )
+================================================================================
+
+======================================================================
+Coverage Summary
+======================================================================
+Statements      |   46.42% |      286/616 | ✗ low
+Branches        |   39.90% |      172/431 | ✗ low
+Functions       |   57.81% |       74/128 | ◐ medium
+Lines           |   46.77% |      276/590 | ✗ low
+======================================================================
+
+
+✅ Coverage reports generated at: C:\Users\huiga.DESKTOP-0IUELD6\development\Steve-zhang\coverage\e2e
+   Overall coverage: 46.8% lines
+[1A[2K  12 passed (23.4s)
+
+> restaurant-reviews-platform@1.0.0 e2e:teardown-db
+> npx ts-node e2e/teardown-db.ts
+
+
+🧹 Cleaning up...
+(node:42076) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Users/huiga.DESKTOP-0IUELD6/development/Steve-zhang/e2e/teardown-db.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Users\huiga.DESKTOP-0IUELD6\development\Steve-zhang\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✅ PostgreSQL container stopped and removed
+✅ Cleanup complete
+

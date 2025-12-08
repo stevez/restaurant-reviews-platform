@@ -1,7 +1,6 @@
 node_modules/
 .next/
-coverage/
-.v8-coverage/
+/coverage/
 .swc/
 
 # Uploaded images (keep directory with .gitkeep)

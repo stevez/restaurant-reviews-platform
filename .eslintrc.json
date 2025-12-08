@@ -1,3 +1,17 @@
 {
-  "extends": ["next/core-web-vitals"]
+  "extends": ["next/core-web-vitals"],
+  "overrides": [
+    {
+      "files": ["src/**/__tests__/**/*.test.tsx", "src/**/*.test.tsx"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "CallExpression[callee.name='render'] > AwaitExpression > CallExpression",
+            "message": "Do not test async server components with Vitest. Vitest has a known limitation where V8 coverage does not properly instrument async server components (e.g., `render(await Component())`), resulting in 0 branch coverage. Use E2E tests instead."
+          }
+        ]
+      }
+    }
+  ]
 }
