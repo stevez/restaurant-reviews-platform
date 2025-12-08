@@ -3,11 +3,13 @@
  *
  * Loads source code and source maps from Next.js build output.
  * Handles the mapping between bundled code URLs and original source files.
+ * Supports both production builds (external .map files) and dev mode (inline sourcemaps).
  */
 
 import { promises as fs } from 'node:fs'
 import { join, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import convertSourceMap from 'convert-source-map'
 import type { SourceMapData, SourceFile, V8Coverage } from './types.js'
 import { DEFAULT_NEXTCOV_CONFIG } from './config.js'
 
@@ -135,9 +137,23 @@ export class SourceMapLoader {
   }
 
   /**
-   * Extract inline base64 source map from code
+   * Extract inline source map from code using convert-source-map
+   * Handles multiple formats: base64, URI-encoded, and sectioned maps
    */
   extractInlineSourceMap(code: string): SourceMapData | null {
+    try {
+      // Use convert-source-map which handles multiple inline formats
+      const converter = convertSourceMap.fromSource(code)
+      if (converter) {
+        const sourceMap = converter.toObject() as SourceMapData
+        // Handle sectioned sourcemaps (webpack eval-source-map)
+        return this.flattenSourceMap(sourceMap)
+      }
+    } catch {
+      // Ignore errors - might be a false positive match in source code
+    }
+
+    // Fallback to manual extraction for edge cases
     const match = code.match(
       /\/\/[#@]\s*sourceMappingURL=data:application\/json;(?:charset=utf-8;)?base64,(.+)$/m
     )
@@ -145,13 +161,72 @@ export class SourceMapLoader {
     if (match) {
       try {
         const decoded = Buffer.from(match[1], 'base64').toString('utf-8')
-        return JSON.parse(decoded) as SourceMapData
+        const sourceMap = JSON.parse(decoded) as SourceMapData
+        return this.flattenSourceMap(sourceMap)
       } catch {
         return null
       }
     }
 
     return null
+  }
+
+  /**
+   * Flatten sectioned sourcemaps into a single sourcemap
+   * Webpack eval-source-map produces sourcemaps with sections array
+   */
+  private flattenSourceMap(sourceMap: SourceMapData): SourceMapData {
+    // Check if this is a sectioned sourcemap
+    const sections = (sourceMap as SourceMapData & { sections?: Array<{ offset: { line: number; column: number }; map: SourceMapData }> }).sections
+    if (!sections || !Array.isArray(sections)) {
+      return sourceMap // Already flat
+    }
+
+    // Merge all sections into a single sourcemap
+    const mergedSources: string[] = []
+    const mergedSourcesContent: (string | null)[] = []
+    const mergedNames: string[] = []
+    const mergedMappings: string[] = []
+
+    for (const section of sections) {
+      const { map } = section
+      if (!map) continue
+
+      // Collect sources and sourcesContent
+      if (map.sources) {
+        for (let i = 0; i < map.sources.length; i++) {
+          const source = map.sources[i]
+          if (!mergedSources.includes(source)) {
+            mergedSources.push(source)
+            mergedSourcesContent.push(map.sourcesContent?.[i] ?? null)
+          }
+        }
+      }
+
+      // Collect names
+      if (map.names) {
+        for (const name of map.names) {
+          if (!mergedNames.includes(name)) {
+            mergedNames.push(name)
+          }
+        }
+      }
+
+      // Note: Properly merging mappings with offsets is complex
+      // For now, we take the first section's mappings as a simple approach
+      if (map.mappings && mergedMappings.length === 0) {
+        mergedMappings.push(map.mappings)
+      }
+    }
+
+    return {
+      version: 3,
+      sources: mergedSources,
+      sourcesContent: mergedSourcesContent,
+      names: mergedNames,
+      mappings: mergedMappings.join(';'),
+      sourceRoot: sourceMap.sourceRoot,
+    }
   }
 
   /**

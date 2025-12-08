@@ -441,10 +441,16 @@ export class CoverageConverter {
       sourceMap = sourceFile.sourceMap
       filePath = sourceFile.path
     } else {
-      // Try to load source map even if we have source
+      // Try to load source map from disk first
       const sourceFile = await this.sourceMapLoader.loadSource(url)
-      sourceMap = sourceFile?.sourceMap
-      filePath = sourceFile?.path || null
+      if (sourceFile?.sourceMap) {
+        sourceMap = sourceFile.sourceMap
+        filePath = sourceFile.path
+      } else {
+        // No disk file (dev mode) - try to extract inline sourcemap from the source
+        sourceMap = this.sourceMapLoader.extractInlineSourceMap(code) || undefined
+        filePath = this.sourceMapLoader.urlToFilePath(url)
+      }
     }
 
     // If we couldn't resolve a file path, try to extract from URL

@@ -2,13 +2,17 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { connectToCDP, loadNextcovConfig } from 'nextcov'
 
-export default async function globalSetup() {
-  // Verify the container ID file exists (indicates setup-db ran successfully)
-  // Use process.cwd() since Playwright runs from project root
-  const containerIdFile = path.join(process.cwd(), 'e2e', '.container-id')
+// CI mode is detected by .container-id file (created by e2e:setup-db)
+const containerIdFile = path.join(process.cwd(), 'e2e', '.container-id')
+const isCIMode = fs.existsSync(containerIdFile)
 
-  if (!fs.existsSync(containerIdFile)) {
-    throw new Error('Container ID file not found! Run npm run e2e:setup-db first.')
+export default async function globalSetup() {
+  // In CI mode, .container-id exists (created by e2e:setup-db)
+  // In dev mode, database and server are manually started
+  if (isCIMode) {
+    console.log('\n✅ CI mode detected (.container-id exists)')
+  } else {
+    console.log('\n✅ Dev mode detected (no .container-id)')
   }
 
   console.log('\n✅ E2E database ready')
