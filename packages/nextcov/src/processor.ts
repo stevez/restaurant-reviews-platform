@@ -124,8 +124,10 @@ export class CoverageProcessor {
     }
 
     // Filter out files already in coverage
-    const coveredFiles = new Set(coverageMap.files())
-    const uncoveredFiles = sourceFiles.filter((f) => !coveredFiles.has(f))
+    // Normalize paths to forward slashes for cross-platform comparison
+    const normalizePath = (p: string) => p.replace(/\\/g, '/')
+    const coveredFiles = new Set(coverageMap.files().map(normalizePath))
+    const uncoveredFiles = sourceFiles.filter((f) => !coveredFiles.has(normalizePath(f)))
 
     console.log(`Adding ${uncoveredFiles.length} source files for complete coverage...`)
 

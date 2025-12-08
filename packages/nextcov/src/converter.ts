@@ -5,7 +5,7 @@
  * This is the core of the coverage processing, mirroring Vitest's approach.
  */
 
-import { join, resolve } from 'node:path'
+import { join, resolve, sep } from 'node:path'
 import { parse } from 'acorn'
 import { parse as babelParse } from '@babel/parser'
 import astV8ToIstanbul from 'ast-v8-to-istanbul'
@@ -405,10 +405,13 @@ export class CoverageConverter {
       const srcRelative = normalized.substring(lastSrcIndex + 1)
       let absolutePath = resolve(this.projectRoot, srcRelative)
 
-      // Ensure Windows format with uppercase drive letter
-      absolutePath = absolutePath.replace(/\//g, '\\')
-      if (/^[a-z]:/.test(absolutePath)) {
-        absolutePath = absolutePath.charAt(0).toUpperCase() + absolutePath.slice(1)
+      // Normalize path separators based on platform
+      if (sep === '\\') {
+        // Windows: ensure backslashes and uppercase drive letter
+        absolutePath = absolutePath.replace(/\//g, '\\')
+        if (/^[a-z]:/.test(absolutePath)) {
+          absolutePath = absolutePath.charAt(0).toUpperCase() + absolutePath.slice(1)
+        }
       }
 
       return absolutePath
@@ -754,10 +757,12 @@ export class CoverageConverter {
     coverageMap: CoverageMap,
     sourceFiles: string[]
   ): Promise<CoverageMap> {
-    const coveredFiles = new Set(coverageMap.files())
+    // Normalize paths to forward slashes for cross-platform comparison
+    const normalizePath = (p: string) => p.replace(/\\/g, '/')
+    const coveredFiles = new Set(coverageMap.files().map(normalizePath))
 
     for (const filePath of sourceFiles) {
-      if (coveredFiles.has(filePath)) continue
+      if (coveredFiles.has(normalizePath(filePath))) continue
 
       // Note: We don't apply the source filter here because:
       // 1. The sourceFiles list was already filtered by glob with include/exclude patterns
