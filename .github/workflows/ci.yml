@@ -27,7 +27,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Build nextcov library
-        run: npm run build -w packages/nextcov
+        run: cd packages/nextcov && npm run build
 
       - name: Run TypeScript type checking
         run: npx tsc --noEmit
@@ -74,7 +74,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Build nextcov library
-        run: npm run build -w packages/nextcov
+        run: cd packages/nextcov && npm run build
 
       - name: Build application
         run: npm run build
