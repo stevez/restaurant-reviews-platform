@@ -70,6 +70,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Build nextcov library
+        run: npm run build -w packages/nextcov
+
       - name: Build application
         run: npm run build
         env:
