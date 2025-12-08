@@ -4,7 +4,7 @@
   "description": "Full-stack restaurant review platform",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "cross-env NODE_OPTIONS=--inspect=9230 next dev",
     "build": "node scripts/build.js",
     "postinstall": "prisma generate",
     "start": "next start",
@@ -26,14 +26,15 @@
     "e2e:setup-db": "npx ts-node e2e/setup-db.ts",
     "e2e:teardown-db": "npx ts-node e2e/teardown-db.ts",
     "build:e2e": "cross-env E2E_MODE=true npm run build",
-    "start:e2e": "cross-env E2E_MODE=true DATABASE_URL_BASE=postgresql://test:test@localhost:5434 CDP_PORT=9230 NODE_OPTIONS=--inspect=9230 next start",
+    "start:e2e": "cross-env E2E_MODE=true DATABASE_URL_BASE=postgresql://test:test@localhost:5434 NODE_OPTIONS=--inspect=9230 next start",
     "e2e:clean": "rimraf coverage/e2e",
     "playwright-test": "playwright test --config=e2e/playwright.config.ts",
     "e2e:run": "start-server-and-test start:e2e http-get://localhost:3000 playwright-test",
     "e2e": "npm run e2e:clean && npm run e2e:setup-db && npm run e2e:run && npm run e2e:teardown-db",
     "e2e:headed": "npm run e2e:setup-db && start-server-and-test start:e2e http-get://localhost:3000 \"playwright test --config=e2e/playwright.config.ts --headed\" && npm run e2e:teardown-db",
     "e2e:ui": "npm run e2e:setup-db && start-server-and-test start:e2e http-get://localhost:3000 \"playwright test --config=e2e/playwright.config.ts --ui\" && npm run e2e:teardown-db",
-    "coverage:merge": "npx ts-node --esm scripts/merge-coverage.ts"
+    "coverage:merge": "npx ts-node --esm scripts/merge-coverage.ts",
+    "e2e:finalize": "npx ts-node e2e/finalize-coverage.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

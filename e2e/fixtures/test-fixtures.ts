@@ -1,19 +1,30 @@
 import { test as base, expect } from '@playwright/test'
 import { PrismaClient } from '@prisma/client'
 import { collectClientCoverage } from 'nextcov/playwright'
+import * as fs from 'fs'
+import * as path from 'path'
 
-const E2E_DB_PORT = 5434
+// CI mode is detected by .container-id file (created by e2e:setup-db)
+const containerIdFile = path.join(process.cwd(), 'e2e', '.container-id')
+const isCIMode = fs.existsSync(containerIdFile)
+
+// CI mode uses testcontainers on port 5434, dev mode uses docker-compose on port 5433
+const DATABASE_URL_BASE = isCIMode
+  ? 'postgresql://test:test@localhost:5434'
+  : 'postgresql://restaurant_user:restaurant_password@localhost:5433'
 
 // Cache prisma clients per worker to avoid creating new connections for each test
 const workerPrismaClients = new Map<number, PrismaClient>()
 
 function getWorkerPrisma(workerId: number): PrismaClient {
   if (!workerPrismaClients.has(workerId)) {
+    // CI mode uses worker-specific databases, dev mode uses the main database
+    const dbName = isCIMode ? `test_${workerId}` : 'restaurant_reviews'
     workerPrismaClients.set(
       workerId,
       new PrismaClient({
         datasources: {
-          db: { url: `postgresql://test:test@localhost:${E2E_DB_PORT}/test_${workerId}` },
+          db: { url: `${DATABASE_URL_BASE}/${dbName}` },
         },
       })
     )

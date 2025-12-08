@@ -6,9 +6,22 @@ const workerClients = new Map<string, PrismaClient>()
 
 function getDefaultClient(): PrismaClient {
   if (!globalThis.prisma) {
-    globalThis.prisma = new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['query'] : [],
-    })
+    // In E2E mode, use DATABASE_URL_BASE with a default database (test_0)
+    // This ensures all requests go to the CI database on port 5434
+    const isE2EMode = process.env.E2E_MODE === 'true'
+    const baseUrl = process.env.DATABASE_URL_BASE
+
+    if (isE2EMode && baseUrl) {
+      globalThis.prisma = new PrismaClient({
+        datasources: {
+          db: { url: `${baseUrl}/test_0` },
+        },
+      })
+    } else {
+      globalThis.prisma = new PrismaClient({
+        log: process.env.NODE_ENV === 'development' ? ['query'] : [],
+      })
+    }
   }
   return globalThis.prisma
 }
