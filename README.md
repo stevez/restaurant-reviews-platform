@@ -25,7 +25,8 @@ This application is a modern restaurant review platform that allows users to dis
 - 🔐 Secure JWT authentication with role-based access control
 - 🎨 Fully responsive design (mobile, tablet, desktop)
 - 📊 Comprehensive filtering and sorting with persistence
-- 🧪 Comprehensive tests with Vitest (unit tests + browser mode)
+- 🧪 Comprehensive tests with Vitest + Playwright E2E (88% merged coverage)
+- 📈 E2E coverage collection with [nextcov](https://github.com/stevez/nextcov)
 - 🚀 Built with Next.js 14 App Router and Server Actions
 - 💾 PostgreSQL database with Prisma ORM
 - ✅ Full TypeScript coverage with Zod validation
@@ -152,9 +153,16 @@ After seeding, you can log in with these test accounts:
 - `npm test` - Run all tests (unit + browser)
 - `npm run test:unit` - Run unit tests only
 - `npm run test:watch` - Run tests in watch mode
-- `npm run test:coverage` - Generate coverage report
+- `npm run test:coverage` - Generate unit test coverage report
 - `npm run test:browser` - Run browser tests (headless)
 - `npm run test:browser:headed` - Run browser tests with visual UI
+
+### E2E Testing & Coverage
+
+- `npm run e2e` - Run E2E tests with coverage (setup db, run tests, teardown)
+- `npm run e2e:headed` - Run E2E tests with visible browser
+- `npm run e2e:ui` - Run E2E tests with Playwright UI
+- `npm run coverage:merge` - Merge unit and E2E coverage into single report
 
 ### Database
 
@@ -270,9 +278,9 @@ The data persists in a Docker volume, so you can restart with `npm run db:start`
 
 ## Testing
 
-This project uses **[Vitest](https://vitest.dev/)** for testing with two test modes:
+This project uses a comprehensive testing strategy with **[Vitest](https://vitest.dev/)** for unit tests and **[Playwright](https://playwright.dev/)** for E2E tests, with coverage collection and merging powered by **[nextcov](https://github.com/stevez/nextcov)**.
 
-### Unit Tests (jsdom)
+### Unit Tests (Vitest)
 Fast unit tests running in jsdom environment for server actions, utilities, and components.
 
 ```bash
@@ -281,9 +289,12 @@ npm run test:unit
 
 # Run tests in watch mode
 npm run test:watch
+
+# Run unit tests with coverage
+npm run test:coverage
 ```
 
-### Browser Mode Tests (Playwright)
+### Browser Mode Tests (Vitest + Playwright)
 Real browser tests using Vitest browser mode with Playwright for component testing with actual browser APIs.
 
 ```bash
@@ -296,27 +307,61 @@ npm run test:browser:headed
 
 Screenshots are captured on test failures and saved to `__screenshots__/` folders next to test files.
 
-### Coverage
-Coverage is generated using v8 provider. Vitest automatically merges coverage from both unit and browser tests into a single report.
+### E2E Tests (Playwright)
+Full end-to-end tests using Playwright that test the complete application including React Server Components, server actions, and user flows.
 
 ```bash
-# Generate combined coverage report (unit + browser)
-npm run test:coverage
+# Run E2E tests (sets up database, runs tests, tears down)
+npm run e2e
 
-# Generate coverage for unit tests only
-npm run test:unit
+# Run E2E tests with headed browser
+npm run e2e:headed
 
-# Generate coverage for browser tests only
-npm run test:browser
+# Run E2E tests with Playwright UI
+npm run e2e:ui
 ```
 
-**Output:**
-- Coverage reports: `coverage/` (HTML report at `coverage/index.html`)
+### Coverage
+
+This project uses **[nextcov](https://www.npmjs.com/package/nextcov)** to collect V8 coverage from Playwright E2E tests and merge it with Vitest unit test coverage.
+
+```bash
+# Run unit tests with coverage
+npm run test:coverage
+
+# Run E2E tests (includes coverage collection)
+npm run e2e
+
+# Merge unit and E2E coverage into a single report
+npm run coverage:merge
+```
+
+**Coverage Output:**
+- Unit test coverage: `coverage/unit/`
+- E2E test coverage: `coverage/e2e/`
+- Merged coverage: `coverage/merged/` (HTML report at `coverage/merged/index.html`)
+
+**Coverage Results:**
+
+| Coverage Type | Lines | Description |
+|---------------|-------|-------------|
+| **Unit Tests** (Vitest) | ~80% | Client components, utilities, API routes |
+| **E2E Tests** (Playwright + nextcov) | ~46% | Server components, pages, user flows |
+| **Merged** | ~88% | Complete picture of your application |
+
+**Why E2E Coverage Matters:**
+
+Next.js App Router introduced React Server Components (RSC) which are difficult to unit test because they run only on the server. By collecting coverage from E2E tests, we can measure coverage of:
+- React Server Components
+- Server Actions
+- Page-level logic
+- Full user flows
 
 **Test Coverage:**
-- ✅ v8 coverage provider
+- ✅ V8 coverage provider for accurate source mapping
 - ✅ Unit tests for all server actions
 - ✅ Browser mode tests for interactive components
+- ✅ E2E tests for server components and user flows
 - ✅ Form validation tests
 - ✅ Authentication and authorization tests
 - ✅ Database operation tests
