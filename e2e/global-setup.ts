@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { connectToCDP, loadNextcovConfig } from 'nextcov'
+import { startServerCoverageAutoDetect, loadNextcovConfig } from 'nextcov'
 
 // CI mode is detected by .container-id file (created by e2e:setup-db)
 const containerIdFile = path.join(process.cwd(), 'e2e', '.container-id')
@@ -20,7 +20,8 @@ export default async function globalSetup() {
   // Load config from playwright.config.ts
   const config = await loadNextcovConfig(path.join(process.cwd(), 'e2e', 'playwright.config.ts'))
 
-  // Connect to server for coverage collection
-  console.log('📊 Setting up server coverage...')
-  await connectToCDP({ port: config.cdpPort })
+  // Start server coverage collection with auto-detection (dev vs production mode)
+  await startServerCoverageAutoDetect({
+    cdpPort: config.cdpPort,
+  })
 }

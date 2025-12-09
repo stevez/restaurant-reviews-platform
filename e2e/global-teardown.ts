@@ -12,5 +12,7 @@ import { loadNextcovConfig } from 'nextcov'
 export default async function globalTeardown(_config: FullConfig) {
   // Load config from playwright.config.ts
   const config = await loadNextcovConfig(path.join(process.cwd(), 'e2e', 'playwright.config.ts'))
+
+  // Finalize coverage - this handles stopping server coverage collection internally
   await finalizeCoverage(config)
 }
