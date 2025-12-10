@@ -6,6 +6,24 @@ type PlaywrightConfigWithNextcov = Parameters<typeof defineConfig>[0] & {
   nextcov?: NextcovConfig
 }
 
+// Nextcov configuration - exported separately since defineConfig strips unknown properties
+export const nextcov: NextcovConfig = {
+  cdpPort: 9230,
+  buildDir: 'dist',
+  outputDir: 'coverage/e2e',
+  sourceRoot: './src',
+  include: ['src/**/*.{ts,tsx,js,jsx}'],
+  exclude: [
+    'src/**/__tests__/**',
+    'src/**/*.test.{ts,tsx}',
+    'src/**/*.spec.{ts,tsx}',
+    'src/**/*.browser.test.{ts,tsx}',
+    'src/**/types/**',
+    'src/**/*.css',
+  ],
+  reporters: ['html', 'lcov', 'json', 'text-summary'],
+}
+
 const config: PlaywrightConfigWithNextcov = {
   testDir: './e2e',
   fullyParallel: true,
@@ -32,23 +50,7 @@ const config: PlaywrightConfigWithNextcov = {
     },
   ],
 
-  // Nextcov configuration for E2E coverage collection
-  nextcov: {
-    cdpPort: 9230,
-    buildDir: '.next',
-    outputDir: 'coverage/e2e',
-    sourceRoot: './src',
-    include: ['src/**/*.{ts,tsx,js,jsx}'],
-    exclude: [
-      'src/**/__tests__/**',
-      'src/**/*.test.{ts,tsx}',
-      'src/**/*.spec.{ts,tsx}',
-      'src/**/*.browser.test.{ts,tsx}',
-      'src/**/types/**',
-      'src/**/*.css',
-    ],
-    reporters: ['html', 'lcov', 'json', 'text-summary'],
-  },
+  nextcov,
 }
 
 export default defineConfig(config)

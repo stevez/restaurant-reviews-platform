@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  distDir: 'dist',
   reactStrictMode: true,
   // Enable source maps for production builds (needed for v8 coverage)
   productionBrowserSourceMaps: true,
