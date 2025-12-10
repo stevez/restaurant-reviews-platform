@@ -17,11 +17,10 @@ export default async function globalSetup() {
 
   console.log('\n✅ E2E database ready')
 
-  // Load config from playwright.config.ts
-  const config = await loadNextcovConfig(path.join(process.cwd(), 'e2e', 'playwright.config.ts'))
+  // Load config from playwright.config.ts (now in root)
+  const config = await loadNextcovConfig(path.join(process.cwd(), 'playwright.config.ts'))
 
   // Start server coverage collection with auto-detection (dev vs production mode)
-  await startServerCoverageAutoDetect({
-    cdpPort: config.cdpPort,
-  })
+  // Pass the full config to use buildDir, sourceRoot, etc.
+  await startServerCoverageAutoDetect(config)
 }

@@ -1,5 +1,6 @@
 node_modules/
 .next/
+dist/
 /coverage/
 .swc/
 
@@ -20,3 +21,5 @@ e2e/.container-id
 playwright-report/
 test-results/
 monocart-report/
+.yalc/
+yalc.lock
