@@ -23,3 +23,4 @@ test-results/
 monocart-report/
 .yalc/
 yalc.lock
+.v8-coverage/
