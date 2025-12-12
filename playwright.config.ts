@@ -34,6 +34,7 @@ const config: PlaywrightConfigWithNextcov = {
   // Use standard Playwright reporters - coverage is handled by our custom processor
   reporter: process.env.CI ? [['github'], ['html']] : [['html']],
 
+  globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
 
   use: {
