@@ -22,6 +22,7 @@ export const nextcov: NextcovConfig = {
     'src/**/*.css',
   ],
   reporters: ['html', 'lcov', 'json', 'text-summary'],
+  log: true,
 }
 
 const config: PlaywrightConfigWithNextcov = {

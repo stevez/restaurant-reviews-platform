@@ -4,7 +4,7 @@
   "description": "Full-stack restaurant review platform",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_V8_COVERAGE=.v8-coverage NODE_OPTIONS=--inspect=9230 next dev",
+    "dev": "cross-env NODE_OPTIONS=--inspect=9230 next dev",
     "build": "node scripts/build.js",
     "postinstall": "prisma generate",
     "start": "next start",
@@ -35,9 +35,9 @@
     "e2e:ui": "npm run e2e:setup-db && start-server-and-test start:e2e http-get://localhost:3000 \"playwright test --ui\" && npm run e2e:teardown-db",
     "coverage:merge": "npx ts-node --esm scripts/merge-coverage.ts",
     "e2e:finalize": "npx ts-node e2e/finalize-coverage.ts",
-    "dev:e2e": "cross-env DATABASE_URL_BASE=postgresql://test:test@localhost:5434 NODE_V8_COVERAGE=.v8-coverage NODE_OPTIONS=--inspect=9230 next dev",
-    "e2e:dev:run": "start-server-and-test dev:e2e http-get://localhost:3000 playwright-test",
-    "e2e:dev": "npm run e2e:clean && npm run e2e:setup-db && npm run e2e:dev:run && npm run e2e:teardown-db"
+    "dev:e2e": "cross-env NODE_OPTIONS=--inspect=9230 next dev",
+    "e2e:dev:run": "start-server-and-test dev:e2e http-get://localhost:3000 \"playwright test --workers=1\"",
+    "e2e:dev": "npm run db:start && npm run db:push && npm run e2e:clean && rimraf .next e2e/.container-id && npm run e2e:dev:run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -79,7 +79,7 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0",
     "jsdom": "^27.2.0",
-    "nextcov": "^0.4.1",
+    "nextcov": "^0.4.2",
     "node-mocks-http": "^1.17.2",
     "pg": "^8.16.3",
     "playwright": "^1.57.0",
