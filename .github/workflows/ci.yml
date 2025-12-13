@@ -56,7 +56,6 @@ jobs:
       - name: Run E2E tests (dev mode)
         run: npm run e2e:dev
         env:
-          DATABASE_URL: postgresql://restaurant_user:restaurant_password@localhost:5433/restaurant_reviews
           JWT_SECRET: test-secret-key-for-ci-only-not-for-production
 
       - name: Upload coverage reports
