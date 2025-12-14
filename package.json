@@ -38,7 +38,9 @@
     "dev:e2e": "cross-env NODE_OPTIONS=--inspect=9230 next dev",
     "e2e:dev:run": "start-server-and-test dev:e2e http-get://localhost:3000 \"playwright test --workers=1\"",
     "db:wait": "node scripts/wait-for-db.js",
-    "e2e:dev": "cross-env DATABASE_URL=postgresql://restaurant_user:restaurant_password@localhost:5433/restaurant_reviews npm run db:start && npm run db:wait && npm run db:push && npm run e2e:clean && rimraf .next e2e/.container-id && npm run e2e:dev:run"
+    "db:wait:local": "cross-env DATABASE_URL=postgresql://restaurant_user:restaurant_password@localhost:5433/restaurant_reviews node scripts/wait-for-db.js",
+    "e2e:dev": "npm run db:start && npm run db:push && npm run e2e:clean && rimraf .next e2e/.container-id && npm run e2e:dev:run",
+    "e2e:dev:local": "npm run db:start && npm run db:wait:local && npm run db:push && npm run e2e:clean && rimraf .next e2e/.container-id && npm run e2e:dev:run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
