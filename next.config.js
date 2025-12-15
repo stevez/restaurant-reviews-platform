@@ -65,6 +65,7 @@ module.exports = (phase) => {
     },
   }
 
+  // Use dist for production, .next for dev
   if (phase !== PHASE_DEVELOPMENT_SERVER) {
     return { ...nextConfig, distDir: 'dist' }
   }

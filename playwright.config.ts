@@ -22,7 +22,8 @@ export const nextcov: NextcovConfig = {
     'src/**/*.css',
   ],
   reporters: ['html', 'lcov', 'json', 'text-summary'],
-  log: true,
+  log: false,
+  timing: true,
 }
 
 const config: PlaywrightConfigWithNextcov = {
@@ -33,7 +34,7 @@ const config: PlaywrightConfigWithNextcov = {
   workers: process.env.CI ? 4 : 4,
 
   // Use standard Playwright reporters - coverage is handled by our custom processor
-  reporter: process.env.CI ? [['github'], ['html']] : [['html']],
+  reporter: process.env.CI ? [['github'], ['html']] : [['list'], ['html']],
 
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
