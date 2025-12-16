@@ -11,6 +11,11 @@ module.exports = (phase) => {
     images: {
       unoptimized: true,
     },
+    // Keep heavy dependencies external to reduce bundle size
+    // These are server-only deps that don't need to be bundled into page.js files
+    experimental: {
+       serverComponentsExternalPackages: ['bcryptjs', 'jose', '@prisma/client'],
+    },
     webpack: (config, { isServer, dev }) => {
       if (isE2EMode) {
         if (dev) {
