@@ -1,5 +1,3 @@
-'use client'
-
 import { RestaurantForm } from '@/components/restaurants/RestaurantForm'
 
 export default function AddRestaurantPage() {
