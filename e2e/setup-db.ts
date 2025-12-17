@@ -43,6 +43,13 @@ async function setupDatabase() {
 
   for (let i = 0; i < WORKER_COUNT; i++) {
     const dbName = `test_${i}`
+    // Terminate all connections to the database before dropping
+    await client.query(`
+      SELECT pg_terminate_backend(pg_stat_activity.pid)
+      FROM pg_stat_activity
+      WHERE pg_stat_activity.datname = '${dbName}'
+        AND pid <> pg_backend_pid()
+    `)
     // Drop and recreate database to ensure clean state
     await client.query(`DROP DATABASE IF EXISTS ${dbName}`)
     await client.query(`CREATE DATABASE ${dbName}`)

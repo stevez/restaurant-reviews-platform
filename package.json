@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--inspect=9230 next dev",
     "build": "node scripts/build.js",
-    "postinstall": "prisma generate",
+    "postinstall": "(prisma generate || echo Prisma generation skipped) && node scripts/patch-ps-tree.js",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
