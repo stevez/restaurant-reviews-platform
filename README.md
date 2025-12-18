@@ -25,7 +25,7 @@ This application is a modern restaurant review platform that allows users to dis
 - 🔐 Secure JWT authentication with role-based access control
 - 🎨 Fully responsive design (mobile, tablet, desktop)
 - 📊 Comprehensive filtering and sorting with persistence
-- 🧪 Comprehensive tests with Vitest + Playwright E2E (88% merged coverage)
+- 🧪 Comprehensive tests with Vitest + Playwright E2E (76% merged coverage)
 - 📈 E2E coverage collection with [nextcov](https://github.com/stevez/nextcov)
 - 🚀 Built with Next.js 14 App Router and Server Actions
 - 💾 PostgreSQL database with Prisma ORM
@@ -150,11 +150,10 @@ After seeding, you can log in with these test accounts:
 
 ### Testing
 
-- `npm test` - Run all tests (unit + browser)
-- `npm run test:unit` - Run unit tests only
+- `npm test` - Run unit tests with coverage
+- `npm run test:unit` - Run unit tests with coverage
 - `npm run test:watch` - Run tests in watch mode
-- `npm run test:coverage` - Generate unit test coverage report
-- `npm run test:browser` - Run browser tests (headless)
+- `npm run test:browser` - Run browser tests (headless, excluded by default)
 - `npm run test:browser:headed` - Run browser tests with visual UI
 
 ### E2E Testing & Coverage
@@ -284,18 +283,15 @@ This project uses a comprehensive testing strategy with **[Vitest](https://vites
 Fast unit tests running in jsdom environment for server actions, utilities, and components.
 
 ```bash
-# Run unit tests
-npm run test:unit
+# Run unit tests with coverage (default)
+npm test
 
 # Run tests in watch mode
 npm run test:watch
-
-# Run unit tests with coverage
-npm run test:coverage
 ```
 
 ### Browser Mode Tests (Vitest + Playwright)
-Real browser tests using Vitest browser mode with Playwright for component testing with actual browser APIs.
+Real browser tests using Vitest browser mode with Playwright for component testing with actual browser APIs. Browser tests are excluded from `npm test` by default due to statement count inconsistencies between jsdom and browser environments.
 
 ```bash
 # Run browser tests (headless)
@@ -345,9 +341,9 @@ npm run coverage:merge
 
 | Coverage Type | Lines | Description |
 |---------------|-------|-------------|
-| **Unit Tests** (Vitest) | ~80% | Client components, utilities, API routes |
-| **E2E Tests** (Playwright + nextcov) | ~46% | Server components, pages, user flows |
-| **Merged** | ~88% | Complete picture of your application |
+| **Unit Tests** (Vitest) | ~55% | Client components, utilities, API routes |
+| **E2E Tests** (Playwright + nextcov) | ~52% | Server components, pages, user flows |
+| **Merged** | ~76% | Complete picture of your application |
 
 **Why E2E Coverage Matters:**
 
