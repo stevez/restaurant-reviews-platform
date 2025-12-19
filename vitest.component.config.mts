@@ -12,6 +12,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./vitest.browser.setup.ts'],
     include: ['src/**/*.browser.test.{ts,tsx}'],
+    reporters: ['default', ['html', { outputFile: './test-reports/component/index.html' }]],
     coverage: {
       enabled: true,
       provider: 'v8',

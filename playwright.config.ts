@@ -33,8 +33,10 @@ const config: PlaywrightConfigWithNextcov = {
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 4 : 4,
 
-  // Use standard Playwright reporters - coverage is handled by our custom processor
-  reporter: process.env.CI ? [['github'], ['html']] : [['list'], ['html']],
+  // Use standard Playwright reporters plus custom coverage reporter
+  reporter: process.env.CI
+    ? [['github'], ['html'], ['./e2e/coverage-reporter.ts']]
+    : [['list'], ['html'], ['./e2e/coverage-reporter.ts']],
 
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
