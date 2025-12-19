@@ -149,14 +149,12 @@ jobs:
 
             **Test Results:**
             - [Playwright E2E Tests](${baseUrl}/index.html)
-            - [Unit Tests](${baseUrl}/unit-tests.html)
-            - [Component Tests](${baseUrl}/component-tests.html)
 
             **Coverage Reports:**
             - [Merged Coverage](${baseUrl}/merged-coverage.html)
+            - [E2E Coverage](${baseUrl}/e2e-coverage.html)
             - [Unit Coverage](${baseUrl}/unit-coverage.html)
-            - [Component Coverage](${baseUrl}/component-coverage.html)
-            - [E2E Coverage](${baseUrl}/e2e-coverage.html)`;
+            - [Component Coverage](${baseUrl}/component-coverage.html)`;
 
             // Find existing comment
             const { data: comments } = await github.rest.issues.listComments({
