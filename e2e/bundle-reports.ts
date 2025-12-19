@@ -39,28 +39,4 @@ for (const report of coverageReports) {
   }
 }
 
-// Add links to Playwright report
-if (bundled.length > 0) {
-  const indexPath = path.join(reportDir, 'index.html')
-  if (fs.existsSync(indexPath)) {
-    let html = fs.readFileSync(indexPath, 'utf-8')
-
-    // Build buttons for new reports
-    const newButtons = bundled
-      .filter((r) => !html.includes(r.file))
-      .map(
-        (r) =>
-          `<a href="${r.file}" target="_blank" style="background:#22c55e;color:white;padding:6px 12px;border-radius:6px;text-decoration:none;font-weight:500;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,0.2);margin-left:8px;">${r.title}</a>`
-      )
-      .join('')
-
-    if (newButtons && html.includes('coverage-reporter-links')) {
-      // Insert before the closing </div> of the coverage-reporter-links container
-      html = html.replace(/(id="coverage-reporter-links"[^>]*>)/, '$1' + newButtons)
-      fs.writeFileSync(indexPath, html)
-      console.log(`[BundleReports] Injected ${bundled.length} coverage links`)
-    }
-  }
-}
-
 console.log(`[BundleReports] Done. Bundled ${bundled.length} reports.`)
