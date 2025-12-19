@@ -64,8 +64,9 @@ describe('RegisterForm', () => {
 
     const roleSelect = page.getByLabelText('Role')
     await expect.element(roleSelect).toBeVisible()
-    await expect.element(page.getByRole('option', { name: 'Reviewer' })).toBeVisible()
-    await expect.element(page.getByRole('option', { name: 'Restaurant Owner' })).toBeVisible()
+    // Options are in DOM but not visible until dropdown is opened
+    await expect.element(page.getByRole('option', { name: 'Reviewer' })).toBeInTheDocument()
+    await expect.element(page.getByRole('option', { name: 'Restaurant Owner' })).toBeInTheDocument()
   })
 
   it('should show password requirements hint', async () => {

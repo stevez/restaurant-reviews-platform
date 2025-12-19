@@ -227,7 +227,8 @@ describe('FilterPanel Browser Tests', () => {
   it('should have All Locations as default option', async () => {
     await render(<FilterPanel />)
 
-    await expect.element(page.getByText('All Locations')).toBeVisible()
+    // Option text is in DOM but not visible until dropdown is opened
+    await expect.element(page.getByText('All Locations')).toBeInTheDocument()
   })
 
   it('should show Reset button when minRating is set', async () => {
