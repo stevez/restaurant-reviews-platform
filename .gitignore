@@ -20,6 +20,7 @@ e2e/test-results/
 e2e/.container-id
 playwright-report/
 test-results/
+test-reports/
 monocart-report/
 .yalc/
 yalc.lock

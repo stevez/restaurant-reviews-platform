@@ -11,6 +11,7 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/__tests__/**/*.test.{ts,tsx}'],
     exclude: ['src/**/*.browser.test.{ts,tsx}'],
+    reporters: ['default', ['html', { outputFile: './test-reports/unit/index.html' }]],
     coverage: {
       enabled: true,
       provider: 'v8',

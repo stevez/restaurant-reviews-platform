@@ -53,11 +53,8 @@ jobs:
       - name: Merge coverage reports
         run: npm run coverage:merge
 
-      - name: Run E2E tests (dev mode)
-        run: npm run e2e:dev
-        env:
-          DATABASE_URL: postgresql://restaurant_user:restaurant_password@localhost:5433/restaurant_reviews
-          JWT_SECRET: test-secret-key-for-ci-only-not-for-production
+      - name: Bundle all reports
+        run: npx ts-node e2e/bundle-reports.ts
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -146,10 +143,20 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const reportUrl = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/index.html`;
-            const coverageUrl = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/e2e-coverage.html`;
+            const baseUrl = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}`;
 
-            const body = `## 📊 Test Reports\n\n- [Playwright Report](${reportUrl})\n- [E2E Coverage Report](${coverageUrl})`;
+            const body = `## 📊 Test Reports
+
+            **Test Results:**
+            - [Playwright E2E Tests](${baseUrl}/index.html)
+            - [Unit Tests](${baseUrl}/unit-tests.html)
+            - [Component Tests](${baseUrl}/component-tests.html)
+
+            **Coverage Reports:**
+            - [Merged Coverage](${baseUrl}/merged-coverage.html)
+            - [Unit Coverage](${baseUrl}/unit-coverage.html)
+            - [Component Coverage](${baseUrl}/component-coverage.html)
+            - [E2E Coverage](${baseUrl}/e2e-coverage.html)`;
 
             // Find existing comment
             const { data: comments } = await github.rest.issues.listComments({
