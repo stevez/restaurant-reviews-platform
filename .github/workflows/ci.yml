@@ -72,3 +72,107 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  deploy-report:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+        continue-on-error: true
+
+      - name: Create gh-pages branch if not exists
+        run: |
+          if [ ! -d ".git" ]; then
+            git init
+            git remote add origin https://github.com/${{ github.repository }}.git
+            git checkout -b gh-pages
+            echo "# Playwright Reports" > index.html
+          fi
+
+      - name: Download Playwright report
+        uses: actions/download-artifact@v4
+        with:
+          name: playwright-report
+          path: temp-report/
+
+      - name: Deploy report to GitHub Pages
+        run: |
+          # Determine report directory name
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            REPORT_DIR="pr-${{ github.event.pull_request.number }}"
+          else
+            REPORT_DIR="main-${{ github.sha }}"
+          fi
+
+          # Copy report to the directory
+          rm -rf "$REPORT_DIR"
+          cp -r temp-report/ "$REPORT_DIR"
+          rm -rf temp-report/
+
+          # Update index.html with links to all reports
+          echo '<!DOCTYPE html><html><head><title>Playwright Reports</title><style>body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:20px}h1{color:#333}ul{list-style:none;padding:0}li{margin:10px 0}a{color:#0066cc;text-decoration:none}a:hover{text-decoration:underline}.date{color:#666;font-size:0.9em}</style></head><body><h1>Playwright Test Reports</h1><ul>' > index.html
+
+          # List all report directories, sorted by modification time (newest first)
+          for dir in $(ls -dt pr-* main-* 2>/dev/null | head -20); do
+            if [ -d "$dir" ]; then
+              echo "<li><a href=\"$dir/index.html\">$dir</a> <span class=\"date\">$(date -r "$dir" '+%Y-%m-%d %H:%M')</span></li>" >> index.html
+            fi
+          done
+
+          echo '</ul></body></html>' >> index.html
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Commit and push
+          git add .
+          git commit -m "Deploy Playwright report for $REPORT_DIR" || echo "No changes to commit"
+          git push origin gh-pages
+
+      - name: Post report URL to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const reportUrl = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/index.html`;
+            const coverageUrl = `https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/e2e-coverage.html`;
+
+            const body = `## 📊 Test Reports\n\n- [Playwright Report](${reportUrl})\n- [E2E Coverage Report](${coverageUrl})`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' && comment.body.includes('📊 Test Reports')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
