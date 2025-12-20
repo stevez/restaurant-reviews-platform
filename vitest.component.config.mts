@@ -24,6 +24,7 @@ export default defineConfig({
         'src/**/*.spec.{ts,tsx}',
         'src/**/*.browser.test.{ts,tsx}',
         'src/types/**',
+        'src/**/*.css',
       ],
       reporter: ['text', 'json', 'html'],
     },
