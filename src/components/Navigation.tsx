@@ -2,6 +2,71 @@ import Link from 'next/link'
 import { getCurrentUser } from '@/app/actions/auth'
 import { LogoutButton } from '@/components/auth/LogoutButton'
 
+type User = { name: string; role: string } | null
+
+function UserLinks({ user }: { user: User }) {
+  if (!user) {
+    return (
+      <>
+        <Link
+          href="/login"
+          className="text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-700"
+        >
+          Sign in
+        </Link>
+        <Link
+          href="/register"
+          className="text-xs md:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 md:px-4 py-1.5 md:py-2 rounded-md whitespace-nowrap"
+        >
+          Register
+        </Link>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <span className="text-xs md:text-sm text-gray-600 hidden sm:inline">
+        Welcome, <span className="font-semibold">{user.name}</span>
+      </span>
+
+      <RoleLinks role={user.role} />
+
+      <LogoutButton />
+    </>
+  )
+}
+
+function RoleLinks({ role }: { role: string }) {
+  if (role === 'OWNER') {
+    return (
+      <>
+        <Link
+          href="/owner/my-restaurants"
+          className="text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap"
+        >
+          My Restaurants
+        </Link>
+        <Link
+          href="/owner/create"
+          className="text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap"
+        >
+          Add Restaurant
+        </Link>
+      </>
+    )
+  }
+
+  return (
+    <Link
+      href="/"
+      className="text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap"
+    >
+      Browse Restaurants
+    </Link>
+  )
+}
+
 export async function Navigation() {
   const user = await getCurrentUser()
 
@@ -16,54 +81,7 @@ export async function Navigation() {
           </div>
 
           <div className="flex items-center gap-2 md:gap-4 flex-wrap">
-            {user ? (
-              <>
-                <span className="text-xs md:text-sm text-gray-600 hidden sm:inline">
-                  Welcome, <span className="font-semibold">{user.name}</span>
-                </span>
-
-                {user.role === 'OWNER' ? (
-                  <>
-                    <Link
-                      href="/owner/my-restaurants"
-                      className="text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap"
-                    >
-                      My Restaurants
-                    </Link>
-                    <Link
-                      href="/owner/create"
-                      className="text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap"
-                    >
-                      Add Restaurant
-                    </Link>
-                  </>
-                ) : (
-                  <Link
-                    href="/"
-                    className="text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap"
-                  >
-                    Browse Restaurants
-                  </Link>
-                )}
-
-                <LogoutButton />
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-700"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href="/register"
-                  className="text-xs md:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 md:px-4 py-1.5 md:py-2 rounded-md whitespace-nowrap"
-                >
-                  Register
-                </Link>
-              </>
-            )}
+            <UserLinks user={user} />
           </div>
         </div>
       </div>
