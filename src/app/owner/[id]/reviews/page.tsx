@@ -13,6 +13,13 @@ type Review = {
   user: { name: string }
 }
 
+function ReviewComment({ comment }: { comment: string | null }) {
+  if (!comment) {
+    return null
+  }
+  return <p className="text-gray-700 leading-relaxed">{comment}</p>
+}
+
 function ReviewsList({ reviews }: { reviews: Review[] }) {
   if (reviews.length === 0) {
     return (
@@ -41,9 +48,7 @@ function ReviewsList({ reviews }: { reviews: Review[] }) {
             </div>
           </div>
 
-          {review.comment && (
-            <p className="text-gray-700 leading-relaxed">{review.comment}</p>
-          )}
+          <ReviewComment comment={review.comment} />
         </div>
       ))}
     </>
