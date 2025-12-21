@@ -7,6 +7,20 @@ export interface ErrorMessageProps {
   onRetry?: () => void
 }
 
+function RetryButton({ onRetry }: { onRetry?: () => void }) {
+  if (!onRetry) {
+    return null
+  }
+  return (
+    <button
+      onClick={onRetry}
+      className="mt-2 text-sm font-medium text-red-600 hover:text-red-500"
+    >
+      Try again
+    </button>
+  )
+}
+
 export function ErrorMessage({ message, className, onRetry }: ErrorMessageProps) {
   return (
     <div
@@ -33,14 +47,7 @@ export function ErrorMessage({ message, className, onRetry }: ErrorMessageProps)
         </div>
         <div className="ml-3 flex-1">
           <p className="text-sm text-red-800">{message}</p>
-          {onRetry && (
-            <button
-              onClick={onRetry}
-              className="mt-2 text-sm font-medium text-red-600 hover:text-red-500"
-            >
-              Try again
-            </button>
-          )}
+          <RetryButton onRetry={onRetry} />
         </div>
       </div>
     </div>
