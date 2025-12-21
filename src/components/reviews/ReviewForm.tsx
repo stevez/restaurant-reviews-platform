@@ -7,6 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { reviewSchema, type ReviewInput } from '@/lib/validators';
 import { ErrorMessage } from '@/components/ui';
 
+function FieldError({ message }: { message?: string }) {
+  if (!message) {
+    return null;
+  }
+  return <p className="mt-1 text-sm text-red-600">{message}</p>;
+}
+
 interface ReviewFormProps {
   restaurantId: string;
   existingReview?: {
@@ -74,9 +81,7 @@ export default function ReviewForm({ restaurantId, existingReview }: ReviewFormP
             className="w-full rounded-lg border-0 shadow-sm p-2 h-36 resize-none ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
             placeholder="Write your review..."
           />
-           {errors.comment && (
-             <p className="mt-1 text-sm text-red-600">{errors.comment.message}</p>
-           )}
+           <FieldError message={errors.comment?.message} />
         </div>
 
         <div>
@@ -95,9 +100,7 @@ export default function ReviewForm({ restaurantId, existingReview }: ReviewFormP
             <option value="2">2</option>
             <option value="1">1</option>
           </select>
-           { errors.rating && (
-             <p className="mt-1 text-sm text-red-600">{errors.rating.message}</p>
-           )}
+           <FieldError message={errors.rating?.message} />
         </div>
 
         <div className="flex justify-center">

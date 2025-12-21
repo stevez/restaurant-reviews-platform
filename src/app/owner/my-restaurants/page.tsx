@@ -16,6 +16,23 @@ type RestaurantWithRating = {
   reviewCount: number
 }
 
+function RestaurantImage({ imageUrl, title }: { imageUrl: string | null; title: string }) {
+  if (!imageUrl) {
+    return null
+  }
+  return (
+    <div className="md:w-48 h-48 relative overflow-hidden bg-gray-200">
+      <Image
+        src={imageUrl}
+        alt={title}
+        fill
+        className="object-cover"
+        sizes="(max-width: 768px) 100vw, 192px"
+      />
+    </div>
+  )
+}
+
 function RestaurantsList({ restaurants }: { restaurants: RestaurantWithRating[] }) {
   if (restaurants.length === 0) {
     return (
@@ -36,17 +53,7 @@ function RestaurantsList({ restaurants }: { restaurants: RestaurantWithRating[] 
           className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
         >
           <div className="md:flex">
-            {restaurant.imageUrl && (
-              <div className="md:w-48 h-48 relative overflow-hidden bg-gray-200">
-                <Image
-                  src={restaurant.imageUrl}
-                  alt={restaurant.title}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 192px"
-                />
-              </div>
-            )}
+            <RestaurantImage imageUrl={restaurant.imageUrl} title={restaurant.title} />
             <div className="flex-1 p-6">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-4">
                 <div className="flex-1">

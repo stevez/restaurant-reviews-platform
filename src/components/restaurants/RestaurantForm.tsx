@@ -10,6 +10,13 @@ import { CUISINE_TYPES, type CuisineType } from '@/lib/constants'
 import { Button, Input, ErrorMessage } from '@/components/ui'
 import { ImageUploader } from './ImageUploader'
 
+function FieldError({ message }: { message?: string }) {
+  if (!message) {
+    return null
+  }
+  return <p className="mt-1 text-sm text-red-600">{message}</p>
+}
+
 export interface RestaurantFormProps {
   mode: 'create' | 'edit'
   restaurantId?: string
@@ -81,9 +88,7 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
           {...register('title')}
           disabled={isPending}
         />
-        {errors.title && (
-          <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
-        )}
+        <FieldError message={errors.title?.message} />
       </div>
 
       <div>
@@ -93,9 +98,7 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
           {...register('location')}
           disabled={isPending}
         />
-        {errors.location && (
-          <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
-        )}
+        <FieldError message={errors.location?.message} />
       </div>
 
       <div>
@@ -116,9 +119,7 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
             </label>
           ))}
         </div>
-        {errors.cuisine && (
-          <p className="mt-1 text-sm text-red-600">{errors.cuisine.message}</p>
-        )}
+        <FieldError message={errors.cuisine?.message} />
       </div>
 
       <div>
@@ -131,9 +132,7 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           disabled={isPending}
         />
-        {errors.description && (
-          <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-        )}
+        <FieldError message={errors.description?.message} />
       </div>
 
       <ImageUploader

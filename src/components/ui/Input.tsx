@@ -1,6 +1,17 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 
+function InputLabel({ label, inputId }: { label?: string; inputId?: string }) {
+  if (!label) {
+    return null
+  }
+  return (
+    <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">
+      {label}
+    </label>
+  )
+}
+
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
@@ -13,11 +24,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className="w-full">
-        {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">
-            {label}
-          </label>
-        )}
+        <InputLabel label={label} inputId={inputId} />
         <input
           ref={ref}
           id={inputId}
