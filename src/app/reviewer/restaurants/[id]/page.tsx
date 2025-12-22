@@ -61,12 +61,13 @@ function NoReviewsMessage({ reviewCount }: { reviewCount: number }) {
 export default async function RestaurantDetailsPage({
   params
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   const [restaurant, user, myReview] = await Promise.all([
-    getRestaurant(params.id),
+    getRestaurant(id),
     getCurrentUser(),
-    getCurrentUser().then(u => u ? getMyReview(params.id) : null)
+    getCurrentUser().then(u => u ? getMyReview(id) : null)
   ]);
 
   if (!restaurant) {
@@ -113,7 +114,7 @@ export default async function RestaurantDetailsPage({
       <div className="mx-auto max-w-6xl my-6">
         <h2 className="font-semibold text-xl md:text-2xl text-gray-700 mb-4">Reviews</h2>
 
-        <ReviewerForm user={user} restaurantId={params.id} myReview={myReview} />
+        <ReviewerForm user={user} restaurantId={id} myReview={myReview} />
 
         <div className="my-6">
           {restaurant.reviews.map((review) => (

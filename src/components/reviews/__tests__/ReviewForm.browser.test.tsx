@@ -208,8 +208,10 @@ describe('ReviewForm', () => {
 
       await submitButton.click()
 
-      // Check submit button still exists (form still works)
-      await expect.element(submitButton).toBeVisible()
+      // Button text changes to "Submitting..." and should be disabled
+      const submittingButton = page.getByRole('button', { name: /submitting/i })
+      await expect.element(submittingButton).toBeVisible()
+      await expect.element(submittingButton).toBeDisabled()
 
       // Cleanup
       if (resolveCreate) resolveCreate({ success: true })

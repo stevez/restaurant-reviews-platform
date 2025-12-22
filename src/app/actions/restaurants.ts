@@ -30,7 +30,7 @@ type RestaurantDetail = Omit<Restaurant, 'cuisine'> & {
 export async function getRestaurants(
   filters?: SavedPreferences
 ): Promise<RestaurantWithRating[]> {
-  const prisma = getPrisma()
+  const prisma = await getPrisma()
   const restaurants = await prisma.restaurant.findMany({
     where: {
       ...(filters?.cuisines && filters.cuisines.length > 0 && {
@@ -83,7 +83,7 @@ export async function getRestaurants(
 }
 
 export async function getRestaurant(id: string): Promise<RestaurantDetail | null> {
-  const prisma = getPrisma()
+  const prisma = await getPrisma()
   return await prisma.restaurant.findUnique({
     where: { id },
     include: {
@@ -125,7 +125,7 @@ export async function createRestaurant(data: RestaurantInput): Promise<ActionRes
   }
 
   try {
-    const prisma = getPrisma()
+    const prisma = await getPrisma()
     const restaurant = await prisma.restaurant.create({
       data: {
         title: validation.data.title,
@@ -152,7 +152,7 @@ export async function updateRestaurant(id: string, data: RestaurantInput): Promi
     return { success: false, error: 'Unauthorized' }
   }
 
-  const prisma = getPrisma()
+  const prisma = await getPrisma()
   const restaurant = await prisma.restaurant.findUnique({
     where: { id }
   })
@@ -206,7 +206,7 @@ export async function deleteRestaurant(id: string): Promise<ActionResult> {
     return { success: false, error: 'Unauthorized' }
   }
 
-  const prisma = getPrisma()
+  const prisma = await getPrisma()
   const restaurant = await prisma.restaurant.findUnique({
     where: { id }
   })
@@ -240,7 +240,7 @@ export async function getMyRestaurants(): Promise<RestaurantWithReviews[]> {
     return []
   }
 
-  const prisma = getPrisma()
+  const prisma = await getPrisma()
   return await prisma.restaurant.findMany({
     where: {
       ownerId: user.id

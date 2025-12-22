@@ -6,23 +6,24 @@ import { type CuisineType, type SortOrder } from '@/lib/constants';
 export const dynamic = 'force-dynamic';
 
 interface HomePageProps {
-  searchParams: {
+  searchParams: Promise<{
     cuisine?: string;
     minRating?: string;
     sort?: string;
     location?: string;
-  };
+  }>;
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
+  const resolvedSearchParams = await searchParams;
   // Parse filters from URL
-  const cuisines = searchParams.cuisine?.split(',').filter(Boolean) as CuisineType[] | undefined;
-  const minRating = searchParams.minRating ? Number(searchParams.minRating) : undefined;
+  const cuisines = resolvedSearchParams.cuisine?.split(',').filter(Boolean) as CuisineType[] | undefined;
+  const minRating = resolvedSearchParams.minRating ? Number(resolvedSearchParams.minRating) : undefined;
   const sort: SortOrder | undefined =
-    searchParams.sort === 'best' || searchParams.sort === 'worst'
-      ? searchParams.sort
+    resolvedSearchParams.sort === 'best' || resolvedSearchParams.sort === 'worst'
+      ? resolvedSearchParams.sort
       : undefined;
-  const location = searchParams.location || undefined;
+  const location = resolvedSearchParams.location || undefined;
 
   // Fetch restaurants using server action
   const restaurants = await getRestaurants({

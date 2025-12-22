@@ -24,7 +24,7 @@ export async function createReview(
     return { success: false, error: 'Unauthorized' }
   }
 
-  const prisma = getPrisma()
+  const prisma = await getPrisma()
 
   // Check if user already reviewed this restaurant
   const existingReview = await prisma.review.findUnique({
@@ -75,7 +75,7 @@ export async function updateReview(
     return { success: false, error: 'Unauthorized' }
   }
 
-  const prisma = getPrisma()
+  const prisma = await getPrisma()
   const review = await prisma.review.findUnique({
     where: { id: reviewId }
   })
@@ -108,7 +108,7 @@ export async function deleteReview(reviewId: string): Promise<ActionResult> {
     return { success: false, error: 'Unauthorized' }
   }
 
-  const prisma = getPrisma()
+  const prisma = await getPrisma()
   const review = await prisma.review.findUnique({
     where: { id: reviewId }
   })
@@ -137,7 +137,7 @@ export async function getMyReview(restaurantId: string): Promise<Review | null> 
     return null
   }
 
-  const prisma = getPrisma()
+  const prisma = await getPrisma()
   return await prisma.review.findUnique({
     where: {
       restaurantId_userId: {

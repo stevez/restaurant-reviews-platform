@@ -47,12 +47,12 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
 }
 
 export async function getTokenFromCookies(): Promise<string | null> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   return cookieStore.get('auth-token')?.value || null
 }
 
 export async function setTokenCookie(token: string): Promise<void> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   cookieStore.set('auth-token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -62,7 +62,7 @@ export async function setTokenCookie(token: string): Promise<void> {
 }
 
 export async function clearTokenCookie(): Promise<void> {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   cookieStore.delete('auth-token')
 }
 
