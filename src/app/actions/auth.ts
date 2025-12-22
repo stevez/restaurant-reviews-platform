@@ -25,7 +25,7 @@ export async function loginAction(
   }
 
   try {
-    const prisma = getPrisma()
+    const prisma = await getPrisma()
     const user = await prisma.user.findUnique({
       where: { email: validated.data.email }
     })
@@ -79,7 +79,7 @@ export async function registerAction(
   }
 
   try {
-    const prisma = getPrisma()
+    const prisma = await getPrisma()
     const existingUser = await prisma.user.findUnique({
       where: { email: validated.data.email }
     })
@@ -123,12 +123,14 @@ export async function registerAction(
 }
 
 export async function logoutAction(): Promise<never> {
-  cookies().delete('auth-token')
+  const cookieStore = await cookies()
+  cookieStore.delete('auth-token')
   redirect('/login')
 }
 
 export async function getCurrentUser(): Promise<UserSession | null> {
-  const token = cookies().get('auth-token')?.value
+  const cookieStore = await cookies()
+  const token = cookieStore.get('auth-token')?.value
   
   if (!token) {
     return null
@@ -141,7 +143,7 @@ export async function getCurrentUser(): Promise<UserSession | null> {
       return null
     }
     
-    const prisma = getPrisma()
+    const prisma = await getPrisma()
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {

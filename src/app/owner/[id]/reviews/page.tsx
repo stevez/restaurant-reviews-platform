@@ -55,9 +55,10 @@ function ReviewsList({ reviews }: { reviews: Review[] }) {
   )
 }
 
-export default async function RestaurantReviewsPage({ params }: { params: { id: string } }) {
+export default async function RestaurantReviewsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const [restaurant, user] = await Promise.all([
-    getRestaurant(params.id),
+    getRestaurant(id),
     getCurrentUser(),
   ])
 

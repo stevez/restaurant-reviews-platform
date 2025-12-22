@@ -3,9 +3,10 @@ import { getRestaurant } from '@/app/actions/restaurants'
 import { getCurrentUser } from '@/app/actions/auth'
 import { RestaurantForm } from '@/components/restaurants/RestaurantForm'
 
-export default async function EditRestaurantPage({ params }: { params: { id: string } }) {
+export default async function EditRestaurantPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const [restaurant, user] = await Promise.all([
-    getRestaurant(params.id),
+    getRestaurant(id),
     getCurrentUser(),
   ])
 

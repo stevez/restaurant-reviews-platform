@@ -44,11 +44,11 @@ function getWorkerClient(workerId: string): PrismaClient {
   return workerClients.get(workerId)!
 }
 
-export function getPrisma(): PrismaClient {
+export async function getPrisma(): Promise<PrismaClient> {
   // Only check header in E2E mode
   if (process.env.E2E_MODE === 'true') {
     try {
-      const headersList = headers()
+      const headersList = await headers()
       const workerId = headersList.get('x-worker-id')
       if (workerId) {
         return getWorkerClient(workerId)

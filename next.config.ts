@@ -1,11 +1,10 @@
-const { PHASE_DEVELOPMENT_SERVER } = require('next/constants')
+import { PHASE_DEVELOPMENT_SERVER } from 'next/constants'
+import type { NextConfig } from 'next'
 
-/** @type {(phase: string) => import('next').NextConfig} */
-module.exports = (phase) => {
+export default (phase: string): NextConfig => {
   const isE2EMode = process.env.E2E_MODE === 'true'
 
-  /** @type {import('next').NextConfig} */
-  const nextConfig = {
+  const nextConfig: NextConfig = {
     reactStrictMode: true,
     productionBrowserSourceMaps: isE2EMode,
     images: {
@@ -13,9 +12,7 @@ module.exports = (phase) => {
     },
     // Keep heavy dependencies external to reduce bundle size
     // These are server-only deps that don't need to be bundled into page.js files
-    experimental: {
-       serverComponentsExternalPackages: ['bcryptjs', 'jose', '@prisma/client'],
-    },
+    serverExternalPackages: ['bcryptjs', 'jose', '@prisma/client', 'zod'],
     webpack: (config, { isServer, dev }) => {
       if (isE2EMode) {
         if (dev) {
