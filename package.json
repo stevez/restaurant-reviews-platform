@@ -4,7 +4,7 @@
   "description": "Full-stack restaurant review platform",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_OPTIONS=--inspect=9230 next dev --webpack",
+    "dev": "cross-env NODE_OPTIONS=--inspect=9230 next dev",
     "build": "node scripts/build.js",
     "postinstall": "(prisma generate || echo Prisma generation skipped) && node scripts/patch-ps-tree.js",
     "start": "next start",
@@ -35,7 +35,6 @@
     "e2e:ui": "npm run e2e:setup-db && start-server-and-test start:e2e http-get://localhost:3000 \"playwright test --ui\" && npm run e2e:teardown-db",
     "coverage:strip": "node scripts/strip-coverage-directives.js",
     "coverage:merge": "npm run coverage:strip -- coverage/unit/coverage-final.json && npm run coverage:strip -- coverage/component/coverage-final.json && nextcov merge coverage/unit coverage/component coverage/e2e -o coverage/merged",
-    "e2e:finalize": "npx ts-node e2e/finalize-coverage.ts",
     "dev:e2e": "cross-env NODE_OPTIONS=--inspect=9230 next dev",
     "e2e:dev:run": "start-server-and-test dev:e2e http-get://localhost:3000 \"playwright test --workers=1\"",
     "db:wait": "node scripts/wait-for-db.js",
