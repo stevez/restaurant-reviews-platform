@@ -63,10 +63,14 @@ export default function ReviewForm({ restaurantId, existingReview }: ReviewFormP
     });
   };
 
+  const rootErrorMessage = errors.root?.message ? (
+    <ErrorMessage message={errors.root.message} />
+  ) : null;
+
   return (
     <div className="shadow-md px-4 py-6 rounded-lg space-y-3">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-        {errors.root?.message && <ErrorMessage message={errors.root.message} />}
+        {rootErrorMessage}
 
         <div>
           <label className="text-gray-800 text-sm font-semibold" htmlFor="comment">
