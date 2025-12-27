@@ -77,9 +77,13 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
     })
   }
 
+  const rootErrorMessage = errors.root?.message ? (
+    <ErrorMessage message={errors.root.message} />
+  ) : null;
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {errors.root?.message && <ErrorMessage message={errors.root.message} />}
+      {rootErrorMessage}
 
       <div>
         <Input

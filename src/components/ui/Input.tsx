@@ -22,6 +22,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, helperText, id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
 
+    const errorElement = error ? (
+      <p className="mt-1 text-sm text-red-600">{error}</p>
+    ) : null;
+
+    const helperElement = helperText && !error ? (
+      <p className="mt-1 text-sm text-gray-500">{helperText}</p>
+    ) : null;
+
     return (
       <div className="w-full">
         <InputLabel label={label} inputId={inputId} />
@@ -36,8 +44,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           {...props}
         />
-        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-        {helperText && !error && <p className="mt-1 text-sm text-gray-500">{helperText}</p>}
+        {errorElement}
+        {helperElement}
       </div>
     )
   }

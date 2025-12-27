@@ -47,9 +47,11 @@ export function DeleteRestaurantButton({ restaurantId }: { restaurantId: string 
     )
   }
 
+  const errorMessage = error ? <ErrorMessage message={error} /> : null;
+
   return (
     <div className="flex flex-col gap-2">
-      {error && <ErrorMessage message={error} />}
+      {errorMessage}
       <Button size="sm" variant="danger" onClick={() => setShowConfirm(true)}>
         Delete
       </Button>
