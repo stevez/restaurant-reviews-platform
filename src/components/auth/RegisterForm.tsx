@@ -8,20 +8,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterInput } from '@/lib/validators';
 import { registerAction } from '@/app/actions/auth';
 
-function FormError({ message }: { message?: string }) {
-  if (!message) {
-    return null;
-  }
-  return <div className="text-red-600 text-sm text-center">{message}</div>;
-}
-
-function FieldError({ message }: { message?: string }) {
-  if (!message) {
-    return null;
-  }
-  return <p className="mt-1 text-sm text-red-600">{message}</p>;
-}
-
 export function RegisterForm() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -59,7 +45,9 @@ export function RegisterForm() {
   return (
     <div className="mt-10 max-w-md mx-auto w-full shadow-2xl p-6 rounded-lg">
       <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-        <FormError message={errors.root?.message} />
+        {errors.root && (
+          <div className="text-red-600 text-sm text-center">{errors.root.message}</div>
+        )}
 
         <div>
           <label htmlFor="name" className="block text-gray-800 text-sm font-semibold">
@@ -74,7 +62,9 @@ export function RegisterForm() {
               {...register('name')}
               className="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
             />
-            <FieldError message={errors.name?.message} />
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+            )}
           </div>
         </div>
 
@@ -91,7 +81,9 @@ export function RegisterForm() {
               {...register('email')}
               className="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
             />
-            <FieldError message={errors.email?.message} />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            )}
           </div>
         </div>
 
@@ -108,7 +100,9 @@ export function RegisterForm() {
               {...register('password')}
               className="block w-full rounded-md border-0 px-3 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
             />
-            <FieldError message={errors.password?.message} />
+            {errors.password && (
+              <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+            )}
             <p className="mt-1 text-xs text-gray-500">
               Must be at least 8 characters with uppercase, lowercase, and number
             </p>
@@ -129,7 +123,9 @@ export function RegisterForm() {
               <option value="REVIEWER">Reviewer</option>
               <option value="OWNER">Restaurant Owner</option>
             </select>
-            <FieldError message={errors.role?.message} />
+            {errors.role && (
+              <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
+            )}
           </div>
         </div>
 

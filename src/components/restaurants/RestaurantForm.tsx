@@ -10,13 +10,6 @@ import { CUISINE_TYPES, type CuisineType } from '@/lib/constants'
 import { Button, Input, ErrorMessage } from '@/components/ui'
 import { ImageUploader } from './ImageUploader'
 
-function FieldError({ message }: { message?: string }) {
-  if (!message) {
-    return null
-  }
-  return <p className="mt-1 text-sm text-red-600">{message}</p>
-}
-
 export interface RestaurantFormProps {
   mode: 'create' | 'edit'
   restaurantId?: string
@@ -77,13 +70,9 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
     })
   }
 
-  const rootErrorMessage = errors.root?.message ? (
-    <ErrorMessage message={errors.root.message} />
-  ) : null;
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {rootErrorMessage}
+      {errors.root?.message && <ErrorMessage message={errors.root.message} />}
 
       <div>
         <Input
@@ -92,7 +81,9 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
           {...register('title')}
           disabled={isPending}
         />
-        <FieldError message={errors.title?.message} />
+        {errors.title && (
+          <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+        )}
       </div>
 
       <div>
@@ -102,7 +93,9 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
           {...register('location')}
           disabled={isPending}
         />
-        <FieldError message={errors.location?.message} />
+        {errors.location && (
+          <p className="mt-1 text-sm text-red-600">{errors.location.message}</p>
+        )}
       </div>
 
       <div>
@@ -123,7 +116,9 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
             </label>
           ))}
         </div>
-        <FieldError message={errors.cuisine?.message} />
+        {errors.cuisine && (
+          <p className="mt-1 text-sm text-red-600">{errors.cuisine.message}</p>
+        )}
       </div>
 
       <div>
@@ -136,7 +131,9 @@ export function RestaurantForm({ mode, restaurantId, initialData }: RestaurantFo
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           disabled={isPending}
         />
-        <FieldError message={errors.description?.message} />
+        {errors.description && (
+          <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+        )}
       </div>
 
       <ImageUploader

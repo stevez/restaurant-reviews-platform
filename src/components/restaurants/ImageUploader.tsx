@@ -6,46 +6,6 @@ import { Button } from '@/components/ui'
 import Image from 'next/image'
 import { MAX_IMAGE_SIZE, ALLOWED_IMAGE_TYPES, ERROR_MESSAGES } from '@/lib/constants'
 
-function ImagePreview({ preview }: { preview: string | null }) {
-  if (!preview) {
-    return null
-  }
-  return (
-    <div className="mb-4 relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
-      <Image
-        src={preview}
-        alt="Restaurant preview"
-        fill
-        className="object-cover"
-        sizes="(max-width: 768px) 100vw, 768px"
-      />
-    </div>
-  )
-}
-
-function RemoveButton({ preview, onClick, disabled }: { preview: string | null; onClick: () => void; disabled: boolean }) {
-  if (!preview) {
-    return null
-  }
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      onClick={onClick}
-      disabled={disabled}
-    >
-      Remove
-    </Button>
-  )
-}
-
-function UploadError({ error }: { error: string | null }) {
-  if (!error) {
-    return null
-  }
-  return <p className="mt-2 text-sm text-red-600">{error}</p>
-}
-
 interface ImageUploaderProps {
   currentImageUrl?: string
   onImageChange: (imageUrl: string) => void
@@ -120,7 +80,17 @@ export function ImageUploader({ currentImageUrl, onImageChange, disabled }: Imag
           Restaurant Image
         </label>
 
-        <ImagePreview preview={preview} />
+        {preview && (
+          <div className="mb-4 relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+            <Image
+              src={preview}
+              alt="Restaurant preview"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+            />
+          </div>
+        )}
 
         <div className="flex gap-2">
           <Button
@@ -132,7 +102,16 @@ export function ImageUploader({ currentImageUrl, onImageChange, disabled }: Imag
             {isUploading ? 'Uploading...' : preview ? 'Change Image' : 'Upload Image'}
           </Button>
 
-          <RemoveButton preview={preview} onClick={handleRemove} disabled={disabled || isUploading} />
+          {preview && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleRemove}
+              disabled={disabled || isUploading}
+            >
+              Remove
+            </Button>
+          )}
         </div>
 
         <input
@@ -148,7 +127,9 @@ export function ImageUploader({ currentImageUrl, onImageChange, disabled }: Imag
           Upload a restaurant image (JPEG, PNG, or WebP, max 5MB)
         </p>
 
-        <UploadError error={error} />
+        {error && (
+          <p className="mt-2 text-sm text-red-600">{error}</p>
+        )}
       </div>
     </div>
   )

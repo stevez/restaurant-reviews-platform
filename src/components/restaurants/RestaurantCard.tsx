@@ -14,34 +14,6 @@ export interface RestaurantCardProps {
   reviewCount: number
 }
 
-function CardImage({ imageUrl, title }: { imageUrl: string | null; title: string }) {
-  if (!imageUrl) {
-    return null
-  }
-  return (
-    <div className="h-48 relative overflow-hidden bg-gray-200">
-      <Image
-        src={imageUrl}
-        alt={title}
-        fill
-        className="object-cover"
-        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-      />
-    </div>
-  )
-}
-
-function CuisineOverflow({ count }: { count: number }) {
-  if (count <= 3) {
-    return null
-  }
-  return (
-    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-      +{count - 3}
-    </span>
-  )
-}
-
 export function RestaurantCard({
   id,
   title,
@@ -56,7 +28,17 @@ export function RestaurantCard({
   return (
     <Link href={`/reviewer/restaurants/${id}`}>
       <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
-        <CardImage imageUrl={imageUrl} title={title} />
+        {imageUrl && (
+          <div className="h-48 relative overflow-hidden bg-gray-200">
+            <Image
+              src={imageUrl}
+              alt={title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            />
+          </div>
+        )}
         <div className="p-4 flex-1 flex flex-col">
           <h3 className="text-lg md:text-xl font-semibold mb-2">{title}</h3>
           <p className="text-gray-600 text-sm mb-2 line-clamp-2 flex-1">{description}</p>
@@ -74,7 +56,11 @@ export function RestaurantCard({
                   {c}
                 </span>
               ))}
-              <CuisineOverflow count={cuisine.length} />
+              {cuisine.length > 3 && (
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                  +{cuisine.length - 3}
+                </span>
+              )}
             </div>
             <StarRating
               rating={averageRating}

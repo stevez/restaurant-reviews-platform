@@ -7,13 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { reviewSchema, type ReviewInput } from '@/lib/validators';
 import { ErrorMessage } from '@/components/ui';
 
-function FieldError({ message }: { message?: string }) {
-  if (!message) {
-    return null;
-  }
-  return <p className="mt-1 text-sm text-red-600">{message}</p>;
-}
-
 interface ReviewFormProps {
   restaurantId: string;
   existingReview?: {
@@ -63,14 +56,10 @@ export default function ReviewForm({ restaurantId, existingReview }: ReviewFormP
     });
   };
 
-  const rootErrorMessage = errors.root?.message ? (
-    <ErrorMessage message={errors.root.message} />
-  ) : null;
-
   return (
     <div className="shadow-md px-4 py-6 rounded-lg space-y-3">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-        {rootErrorMessage}
+        {errors.root?.message && <ErrorMessage message={errors.root.message} />}
 
         <div>
           <label className="text-gray-800 text-sm font-semibold" htmlFor="comment">
@@ -85,7 +74,9 @@ export default function ReviewForm({ restaurantId, existingReview }: ReviewFormP
             className="w-full rounded-lg border-0 shadow-sm p-2 h-36 resize-none ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600"
             placeholder="Write your review..."
           />
-           <FieldError message={errors.comment?.message} />
+           {errors.comment && (
+             <p className="mt-1 text-sm text-red-600">{errors.comment.message}</p>
+           )}
         </div>
 
         <div>
@@ -104,7 +95,9 @@ export default function ReviewForm({ restaurantId, existingReview }: ReviewFormP
             <option value="2">2</option>
             <option value="1">1</option>
           </select>
-           <FieldError message={errors.rating?.message} />
+           { errors.rating && (
+             <p className="mt-1 text-sm text-red-600">{errors.rating.message}</p>
+           )}
         </div>
 
         <div className="flex justify-center">

@@ -3,17 +3,6 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui'
 
-function ErrorMessageBox({ message }: { message: string }) {
-  if (!message) {
-    return null
-  }
-  return (
-    <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-      <p className="text-sm text-red-800 font-mono">{message}</p>
-    </div>
-  )
-}
-
 export default function Error({
   error,
   reset,
@@ -36,7 +25,11 @@ export default function Error({
         <p className="text-gray-600 mb-6">
           We encountered an unexpected error. Please try again.
         </p>
-        <ErrorMessageBox message={error.message} />
+        {error.message && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+            <p className="text-sm text-red-800 font-mono">{error.message}</p>
+          </div>
+        )}
         <div className="space-y-2">
           <Button onClick={reset} className="w-full">
             Try again
