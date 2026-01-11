@@ -8,56 +8,6 @@ import ReviewForm from '@/components/reviews/ReviewForm';
 import { Button, StarRating } from '@/components/ui';
 import { calculateAverageRating } from '@/lib/utils';
 
-type UserType = {
-  id: string;
-  role: string;
-} | null;
-
-type ReviewType = {
-  id: string;
-  rating: number;
-  comment: string | null;
-} | null;
-
-function OwnerActions({ isOwner, restaurantId }: { isOwner: boolean; restaurantId: string }) {
-  if (!isOwner) {
-    return null;
-  }
-  return (
-    <div className="flex gap-2 flex-wrap">
-      <Link href={`/owner/${restaurantId}/edit`}>
-        <Button size="sm" variant="secondary">Edit Restaurant</Button>
-      </Link>
-      <Link href={`/owner/${restaurantId}/reviews`}>
-        <Button size="sm" variant="outline">View All Reviews</Button>
-      </Link>
-    </div>
-  );
-}
-
-function ReviewerForm({ user, restaurantId, myReview }: { user: UserType; restaurantId: string; myReview: ReviewType }) {
-  if (user?.role !== 'REVIEWER') {
-    return null;
-  }
-  return (
-    <ReviewForm
-      restaurantId={restaurantId}
-      existingReview={myReview}
-    />
-  );
-}
-
-function NoReviewsMessage({ reviewCount }: { reviewCount: number }) {
-  if (reviewCount > 0) {
-    return null;
-  }
-  return (
-    <div className="text-gray-500 py-8">
-      No reviews yet.
-    </div>
-  );
-}
-
 export default async function RestaurantDetailsPage({
   params
 }: {
@@ -87,7 +37,16 @@ export default async function RestaurantDetailsPage({
             <StarRating rating={averageRating} />
           </div>
         </div>
-        <OwnerActions isOwner={isOwner} restaurantId={restaurant.id} />
+        {isOwner && (
+          <div className="flex gap-2 flex-wrap">
+            <Link href={`/owner/${restaurant.id}/edit`}>
+              <Button size="sm" variant="secondary">Edit Restaurant</Button>
+            </Link>
+            <Link href={`/owner/${restaurant.id}/reviews`}>
+              <Button size="sm" variant="outline">View All Reviews</Button>
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="mx-auto max-w-6xl text-gray-500 text-sm mb-4 font-semibold">
@@ -114,7 +73,12 @@ export default async function RestaurantDetailsPage({
       <div className="mx-auto max-w-6xl my-6">
         <h2 className="font-semibold text-xl md:text-2xl text-gray-700 mb-4">Reviews</h2>
 
-        <ReviewerForm user={user} restaurantId={id} myReview={myReview} />
+        {user?.role === 'REVIEWER' && (
+          <ReviewForm
+            restaurantId={id}
+            existingReview={myReview}
+          />
+        )}
 
         <div className="my-6">
           {restaurant.reviews.map((review) => (
@@ -138,7 +102,11 @@ export default async function RestaurantDetailsPage({
             </div>
           ))}
 
-          <NoReviewsMessage reviewCount={restaurant.reviews.length} />
+          { restaurant.reviews.length === 0 && (
+            <div className="text-gray-500 py-8">
+              No reviews yet.
+            </div>
+          )}
 
         </div>
       </div>

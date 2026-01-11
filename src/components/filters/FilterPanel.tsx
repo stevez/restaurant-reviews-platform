@@ -8,22 +8,6 @@ import { savedPreferencesSchema } from '@/lib/validators';
 
 const FILTER_PREFERENCES_KEY = 'restaurant_filter_preferences'
 
-function ResetButton({ hasActiveFilters, onClick, disabled }: { hasActiveFilters: boolean; onClick: () => void; disabled: boolean }) {
-  if (!hasActiveFilters) {
-    return null
-  }
-  return (
-    <Button
-      onClick={onClick}
-      variant="outline"
-      className="w-full"
-      disabled={disabled}
-    >
-      Reset Filters
-    </Button>
-  )
-}
-
 export interface FilterPanelProps {
   initialCuisines?: CuisineType[]
   initialMinRating?: number
@@ -243,7 +227,16 @@ export function FilterPanel({
         >
           Apply Filters
         </Button>
-        <ResetButton hasActiveFilters={hasActiveFilters} onClick={handleReset} disabled={isPending} />
+        {hasActiveFilters && (
+          <Button
+            onClick={handleReset}
+            variant="outline"
+            className="w-full"
+            disabled={isPending}
+          >
+            Reset Filters
+          </Button>
+        )}
       </div>
     </div>
   )

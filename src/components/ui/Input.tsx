@@ -1,17 +1,6 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 
-function InputLabel({ label, inputId }: { label?: string; inputId?: string }) {
-  if (!label) {
-    return null
-  }
-  return (
-    <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">
-      {label}
-    </label>
-  )
-}
-
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
@@ -22,17 +11,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, helperText, id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
 
-    const errorElement = error ? (
-      <p className="mt-1 text-sm text-red-600">{error}</p>
-    ) : null;
-
-    const helperElement = helperText && !error ? (
-      <p className="mt-1 text-sm text-gray-500">{helperText}</p>
-    ) : null;
-
     return (
       <div className="w-full">
-        <InputLabel label={label} inputId={inputId} />
+        {label && (
+          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">
+            {label}
+          </label>
+        )}
         <input
           ref={ref}
           id={inputId}
@@ -44,8 +29,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           {...props}
         />
-        {errorElement}
-        {helperElement}
+        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        {helperText && !error && <p className="mt-1 text-sm text-gray-500">{helperText}</p>}
       </div>
     )
   }
