@@ -81,12 +81,13 @@ jobs:
           else
             pkill -f "$APP_NAME.app/Contents/MacOS" || true
           fi
-      - uses: actions/upload-artifact@v4
+      # archive: false uploads the zip as it is, so the download is the app's zip itself (named
+      # after the file, e.g. Restaurant-Reviews-1.0.0-win.zip), not a zip inside GitHub's own zip.
+      - uses: actions/upload-artifact@v7
         with:
-          name: desktop-${{ matrix.suffix }}
           path: ${{ steps.zip.outputs.path }}
+          archive: false
           if-no-files-found: error
-          compression-level: 0 # already a zip
           retention-days: 30
       - name: Attach to the release
         if: startsWith(github.ref, 'refs/tags/v')
