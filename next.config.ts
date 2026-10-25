@@ -67,6 +67,12 @@ export default (phase: string): NextConfig => {
     },
   }
 
+  // The desktop build (web-terrarium) builds standalone into its own folder, apart from dist.
+  const desktopDistDir = process.env.WEB_TERRARIUM_DIST_DIR
+  if (desktopDistDir) {
+    return { ...nextConfig, output: 'standalone', distDir: desktopDistDir }
+  }
+
   // Use dist for production, .next for dev
   if (phase !== PHASE_DEVELOPMENT_SERVER) {
     return { ...nextConfig, distDir: 'dist' }

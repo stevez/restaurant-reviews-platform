@@ -394,6 +394,23 @@ Each test type excels at different aspects:
 - ✅ Form validation tests at all levels
 - ✅ Authentication and authorization tests
 
+## Desktop App
+
+The platform can also run as a self-contained Windows or Mac desktop app, packaged with [web-terrarium](https://github.com/stevez/web-terrarium). No Docker or PostgreSQL is needed: the database is PostgreSQL compiled to WebAssembly ([PGlite](https://pglite.dev)), running inside the app.
+
+```bash
+npm run desktop:build   # zip in dist-desktop/out
+npm run desktop:start   # open the staged app without packaging
+```
+
+How it works:
+
+- `desktop/prepare.mjs` runs first. It copies PGlite's files and the Prisma migrations into `desktop/generated/`, then runs `prisma/seed.js` against a temporary PGlite and saves the data as `seed.sql`.
+- `desktop/db-server.mjs` is the database server in the app. It starts PGlite in memory, applies the migrations and the seed data, and serves the Postgres protocol on `127.0.0.1` (with `pglite-socket`), so Prisma connects as usual.
+- [`terrarium.config.mjs`](terrarium.config.mjs) points `DATABASE_URL` at that server, with `connection_limit=1` because PGlite runs one query at a time.
+
+The data is in memory, so every launch starts from the seed data; log in with the [test accounts](#test-accounts). Restaurant photos and icons load from the internet.
+
 ## Deployment
 
 ### Build for Production
