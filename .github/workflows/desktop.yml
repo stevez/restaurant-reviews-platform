@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write # to attach the zips to a release on v* tags
+  pull-requests: write # to comment the download links on pull requests
 
 concurrency:
   group: desktop-${{ github.ref }}
@@ -99,3 +100,44 @@ jobs:
             gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes ||
             gh release view "$GITHUB_REF_NAME" >/dev/null
           gh release upload "$GITHUB_REF_NAME" "${{ steps.zip.outputs.path }}" --clobber
+
+  # One comment on the pull request with links to download the zips, updated on every push.
+  # Skipped for pull requests from forks, whose token can't comment.
+  comment:
+    name: Comment the download links
+    needs: build
+    if: >-
+      !cancelled() && github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          RESULT: ${{ needs.build.result }}
+        run: |
+          marker='<!-- desktop-app-builds -->'
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          links=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" --jq '
+            .artifacts | sort_by(.name)[] |
+            (if (.name | contains("-win")) then "Windows" else "Mac" end) as $os |
+            "- **\($os):** [\(.name)]('"$run_url"'/artifacts/\(.id)) (\(.size_in_bytes / 1048576 | floor) MB)"')
+          if [ "$RESULT" = success ]; then
+            status="Built and smoke-tested on Windows and Mac."
+          else
+            status="⚠️ A build or smoke test failed ($RESULT). See [the run]($run_url)."
+          fi
+          body="$marker
+          ### Desktop app builds for ${SHA:0:7}
+
+          ${links:-No zips were uploaded.}
+
+          $status Download while signed in to GitHub; kept for 30 days. Unzip, then run the app inside."
+          existing=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -n 1)
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$existing" -f body="$body" > /dev/null
+          else
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "$body"
+          fi
