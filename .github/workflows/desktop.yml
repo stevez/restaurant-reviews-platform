@@ -1,0 +1,100 @@
+name: Desktop app (Windows and Mac)
+
+# Builds the desktop app with web-terrarium on a Windows and a Mac runner, checks that it starts,
+# and uploads the zips. On a v* tag, also attaches them to that tag's GitHub Release.
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write # to attach the zips to a release on v* tags
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_NAME: Restaurant Reviews # `name` in terrarium.config.mjs
+  # Packaging downloads the Electron it packs; the runtime `npm ci` would download isn't needed.
+  ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+
+jobs:
+  build:
+    name: Build the ${{ matrix.label }} app
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, label: Windows, suffix: win }
+          - { os: macos-latest, label: Mac, suffix: mac }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build the desktop app
+        run: npm run desktop:build # prepares the PGlite database first
+        env:
+          # The Mac app is ad-hoc signed (no certificate); electron-builder skips that on PRs otherwise.
+          CSC_FOR_PULL_REQUEST: 'true'
+      - name: Find the zip
+        id: zip
+        run: echo "path=$(ls dist-desktop/out/*-${{ matrix.suffix }}.zip)" >> "$GITHUB_OUTPUT"
+      # Unzip, launch, wait for "[web-terrarium] app ready at <url>" in servers.log, load the
+      # page, then quit.
+      - name: Smoke test
+        run: |
+          app="$RUNNER_TEMP/app"
+          mkdir -p "$app"
+          if [ "${{ matrix.suffix }}" = win ]; then
+            # Git Bash's tar can't read zips; its unzip can.
+            unzip -q "${{ steps.zip.outputs.path }}" -d "$app"
+            log="$APPDATA/$APP_NAME/servers.log"
+            "$app/$APP_NAME.exe" &
+          else
+            # ditto keeps the .app bundle's symlinks and file modes.
+            ditto -x -k "${{ steps.zip.outputs.path }}" "$app"
+            log="$HOME/Library/Application Support/$APP_NAME/servers.log"
+            "$app/$APP_NAME.app/Contents/MacOS/$APP_NAME" &
+          fi
+          for _ in $(seq 1 90); do
+            grep -qE 'app ready at|exit code' "$log" 2>/dev/null && break
+            sleep 1
+          done
+          cat "$log" || true
+          url=$(grep -o 'app ready at http://[0-9.:]*' "$log" | sed 's/app ready at //')
+          test -n "$url" || { echo "::error::The app did not start"; exit 1; }
+          curl -fsS -o /dev/null "$url/"
+          echo "The app answered at $url"
+          if [ "${{ matrix.suffix }}" = win ]; then
+            taskkill //IM "$APP_NAME.exe" //T //F
+          else
+            pkill -f "$APP_NAME.app/Contents/MacOS" || true
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.suffix }}
+          path: ${{ steps.zip.outputs.path }}
+          if-no-files-found: error
+          compression-level: 0 # already a zip
+          retention-days: 30
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The first of the two jobs creates the release; both upload their zip.
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 ||
+            gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes ||
+            gh release view "$GITHUB_REF_NAME" >/dev/null
+          gh release upload "$GITHUB_REF_NAME" "${{ steps.zip.outputs.path }}" --clobber
