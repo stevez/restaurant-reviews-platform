@@ -6,9 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  # web-terrarium (desktop build) brings Electron; these jobs never launch it.
+  ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ubuntu-latest (26.04) has no Playwright browsers yet
 
     steps:
       - name: Checkout code

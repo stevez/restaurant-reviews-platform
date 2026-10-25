@@ -34,13 +34,14 @@
     ]
   },
   "include": [
-    "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/types/**/*.d.ts",
+    "dist/types/**/*.ts",
+    "next-env.d.ts",
     "prisma/**/*.ts",
-    "dist/types/**/*.ts"
+    "src/types/**/*.d.ts",
+    ".next-terrarium/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
